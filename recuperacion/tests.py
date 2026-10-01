@@ -142,7 +142,7 @@ class VuelveATiTests(TestCase):
         self.assertEqual(resp_juan.status_code, 200)
         self.assertNotContains(resp_juan, 'LLAVE_SECRETA_CONFIDENCIAL')
         self.assertNotContains(resp_juan, obj.token_retiro)
-        self.assertContains(resp_juan, 'Privacidad Resguardada (Ley N° 19.628)')
+        self.assertContains(resp_juan, 'Privacidad Resguardada')
 
         # 2. Propietaria (Thalya)
         self.client.login(username='thalya', password='password123')
@@ -225,3 +225,78 @@ class VuelveATiTests(TestCase):
         self.assertEqual(encontrado.entregado_a, self.residente1)
         self.assertEqual(encontrado.entregado_por, self.conserje)
         self.assertIsNotNone(encontrado.fecha_entrega)
+
+    def test_reportar_perdido_modo_invitado(self):
+        """Verifica que un usuario no autenticado pueda reportar un objeto perdido en Modo Invitado."""
+        self.client.logout()
+        url = reverse('reportar_perdido')
+        data = {
+            'subcategoria': 'Billetera Café',
+            'categoria': self.categoria.id,
+            'color_principal': 'Café',
+            'marca': 'Gucci',
+            'ubicacion': self.recinto.id,
+            'fecha_suceso': date.today().isoformat(),
+            'contacto_nombre': 'Visitante Pérez',
+            'contacto_email': 'visitante@correo.cl',
+            'contacto_telefono': '+56 9 9999 8888',
+            'descripcion_publica': 'Billetera con documentos',
+            'clave_verificacion_privada': 'Tiene foto familiar en compartimento secreto',
+        }
+        response = self.client.post(url, data)
+        obj = Objeto.objects.get(subcategoria='Billetera Café')
+        self.assertTrue(obj.es_invitado)
+        self.assertIsNone(obj.usuario_reporta)
+        self.assertEqual(obj.contacto_nombre, 'Visitante Pérez')
+        self.assertRedirects(response, reverse('reporte_exitoso_invitado', kwargs={'codigo': obj.codigo_seguimiento}))
+
+    def test_reportar_hallazgo_modo_invitado(self):
+        """Verifica que un visitante pueda reportar un hallazgo sin cuenta."""
+        self.client.logout()
+        url = reverse('reportar_hallazgo')
+        data = {
+            'subcategoria': 'Paraguas Negro',
+            'categoria': self.categoria.id,
+            'color_principal': 'Negro',
+            'marca': '',
+            'ubicacion': self.recinto.id,
+            'fecha_suceso': date.today().isoformat(),
+            'contacto_nombre': 'Camila Externa',
+            'contacto_telefono': '+56 9 7777 6666',
+            'descripcion_publica': 'Paraguas grande con mango curvo',
+            'clave_verificacion_privada': 'Tiene grabado el logo de un banco en el mango',
+        }
+        response = self.client.post(url, data)
+        obj = Objeto.objects.get(subcategoria='Paraguas Negro')
+        self.assertTrue(obj.es_invitado)
+        self.assertIsNone(obj.usuario_reporta)
+        self.assertIn('Conserjería', obj.ubicacion_bodega)
+        self.assertRedirects(response, reverse('reporte_exitoso_invitado', kwargs={'codigo': obj.codigo_seguimiento}))
+
+    def test_consultar_seguimiento_publico(self):
+        """Verifica la consulta de seguimiento pública sin login."""
+        self.client.logout()
+        obj = Objeto.objects.create(
+            tipo_registro='perdido',
+            es_invitado=True,
+            contacto_nombre='Pedro Soto',
+            categoria=self.categoria,
+            subcategoria='Audífonos Sony',
+            color_principal='Negro',
+            ubicacion=self.recinto,
+            descripcion_publica='Audífonos bluetooth',
+            clave_verificacion_privada='Almohadilla derecha gastada',
+            fecha_suceso=date.today(),
+        )
+        url = reverse('consultar_seguimiento')
+        # Consulta sin token
+        resp = self.client.get(url, {'codigo': obj.codigo_seguimiento})
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'Audífonos Sony')
+        self.assertFalse(resp.context['token_valido'])
+
+        # Consulta con token correcto
+        resp_token = self.client.get(url, {'codigo': obj.codigo_seguimiento, 'token': obj.token_retiro})
+        self.assertEqual(resp_token.status_code, 200)
+        self.assertTrue(resp_token.context['token_valido'])
+        self.assertContains(resp_token, 'Almohadilla derecha gastada')

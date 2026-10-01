@@ -126,8 +126,32 @@ class Objeto(models.Model):
     tipo_registro = models.CharField(max_length=20, choices=TIPO_CHOICES)
     usuario_reporta = models.ForeignKey(
         Usuario,
-        on_delete=models.CASCADE,
-        related_name='objetos_reportados'
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='objetos_reportados',
+        help_text="Usuario registrado que reporta (null si es reporte de invitado/visitante)"
+    )
+    es_invitado = models.BooleanField(
+        default=False,
+        help_text="Indica si el reporte fue registrado por un visitante o usuario no autenticado"
+    )
+    contacto_nombre = models.CharField(
+        max_length=120,
+        blank=True,
+        default='',
+        help_text="Nombre completo de contacto para reportes de invitados"
+    )
+    contacto_email = models.EmailField(
+        blank=True,
+        default='',
+        help_text="Correo electrónico de contacto para avisos"
+    )
+    contacto_telefono = models.CharField(
+        max_length=30,
+        blank=True,
+        default='',
+        help_text="Teléfono o WhatsApp de contacto"
     )
     categoria = models.ForeignKey(CategoriaObjeto, on_delete=models.PROTECT)
     subcategoria = models.CharField(
@@ -198,6 +222,24 @@ class Objeto(models.Model):
 
     def __str__(self):
         return f"[{self.codigo_seguimiento}] {self.subcategoria} ({self.get_tipo_registro_display()})"
+
+    def get_reportante_display(self):
+        if self.es_invitado or not self.usuario_reporta:
+            return f"{self.contacto_nombre or 'Visitante'} (Modo Invitado)"
+        return self.usuario_reporta.get_full_name() or self.usuario_reporta.username
+
+    def get_contacto_display(self):
+        if self.es_invitado or not self.usuario_reporta:
+            contactos = []
+            if self.contacto_nombre:
+                contactos.append(self.contacto_nombre)
+            if self.contacto_telefono:
+                contactos.append(f"Tel: {self.contacto_telefono}")
+            if self.contacto_email:
+                contactos.append(f"Email: {self.contacto_email}")
+            return " | ".join(contactos) if contactos else "Invitado sin datos"
+        user = self.usuario_reporta
+        return f"{user.get_full_name() or user.username} ({user.departamento_torre or 'Sin depto'}) - {user.telefono or user.email}"
 
 
 class Coincidencia(models.Model):

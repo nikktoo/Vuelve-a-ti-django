@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Consultar Seguimiento de Objeto{% endblock %}
+
+{% block content %}
+<div style="max-width: 720px; margin: 1.5rem auto;">
+
+  <!-- Formulario de Consulta -->
+  <div class="card" style="padding: 2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 1px solid var(--color-border-dark); margin-bottom: 1.8rem;">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--color-primary); color: #FFF; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.6rem;">
+        <i class="fa-solid fa-magnifying-glass-location"></i>
+      </div>
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #2B1E16; margin-bottom: 0.2rem;">
+        Consultar Estado de tu Objeto
+      </h2>
+      <p style="font-size: 0.9rem; color: #756356;">
+        Ingresa el código de seguimiento asignado a tu reporte para revisar su estado en tiempo real.
+      </p>
+    </div>
+
+    <form method="GET" action="{% url 'consultar_seguimiento' %}" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+      <div style="flex: 2; min-width: 220px;">
+        <input type="text" name="codigo" value="{{ codigo }}" class="form-control" placeholder="Ej: VT-2026-9281" required style="font-weight: 700; text-transform: uppercase;">
+      </div>
+      <div style="flex: 1; min-width: 140px;">
+        <input type="text" name="token" value="{{ token }}" class="form-control" placeholder="Token (opcional)" maxlength="6" style="text-align: center; font-weight: 700;">
+      </div>
+      <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">
+        <i class="fa-solid fa-search"></i> Consultar
+      </button>
+    </form>
+  </div>
+
+  <!-- Resultado de la Búsqueda -->
+  {% if error %}
+    <div style="background-color: #FDE8E8; border: 1px solid #F98080; color: #9B1C1C; padding: 1.25rem; border-radius: var(--radius-md); text-align: center;">
+      <i class="fa-solid fa-circle-exclamation" style="font-size: 1.5rem; margin-bottom: 0.4rem;"></i>
+      <div><strong>{{ error }}</strong></div>
+      <p style="font-size: 0.85rem; margin: 0.4rem 0 0 0;">
+        Verifica que el código esté escrito tal cual fue entregado (ejemplo: VT-2026-XXXX). Si extraviaste tu comprobante, puedes consultar presencialmente en conserjería.
+      </p>
+    </div>
+  {% elif objeto %}
+    <div class="card" style="padding: 2.2rem; border-radius: var(--radius-lg); background-color: #FFFFFF; border: 1px solid var(--color-border-dark);">
+
+      <!-- Encabezado del Objeto -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #E5E7EB; padding-bottom: 1.25rem; margin-bottom: 1.25rem;">
+        <div>
+          <span style="font-size: 0.8rem; font-weight: 700; color: #8F623F; text-transform: uppercase; letter-spacing: 0.05em;">
+            {{ objeto.codigo_seguimiento }} &bull; {{ objeto.get_tipo_registro_display }}
+          </span>
+          <h3 style="font-size: 1.6rem; font-weight: 800; color: #2B1E16; margin: 0.2rem 0;">
+            {{ objeto.subcategoria }}
+          </h3>
+          <span style="font-size: 0.9rem; color: #6B7280;">
+            <i class="fa-solid fa-location-dot"></i> {{ objeto.ubicacion.nombre }}
+          </span>
+        </div>
+
+        <div>
+          {% if objeto.estado == 'registrado' %}
+            <span class="badge badge-registrado" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+              <i class="fa-solid fa-clock"></i> En Búsqueda / En Custodia
+            </span>
+          {% elif objeto.estado == 'en_verificacion' %}
+            <span class="badge badge-en_verificacion" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+              <i class="fa-solid fa-hourglass-half"></i> En Proceso de Verificación
+            </span>
+          {% elif objeto.estado == 'entregado' %}
+            <span class="badge badge-entregado" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+              <i class="fa-solid fa-circle-check"></i> Entregado al Propietario
+            </span>
+          {% else %}
+            <span class="badge badge-baja" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+              {{ objeto.get_estado_display }}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Ficha Técnica Pública -->
+      <div class="grid-2" style="gap: 1.25rem; margin-bottom: 1.5rem; font-size: 0.9rem;">
+        <div>
+          <strong style="color: #6B7280;">Categoría:</strong>
+          <div style="color: #1F2937; font-weight: 600;">{{ objeto.categoria.nombre }}</div>
+        </div>
+        <div>
+          <strong style="color: #6B7280;">Color Principal:</strong>
+          <div style="color: #1F2937; font-weight: 600;">{{ objeto.color_principal }}</div>
+        </div>
+        <div>
+          <strong style="color: #6B7280;">Marca o Fabricante:</strong>
+          <div style="color: #1F2937; font-weight: 600;">{{ objeto.marca|default:"No especificada" }}</div>
+        </div>
+        <div>
+          <strong style="color: #6B7280;">Fecha de Suceso:</strong>
+          <div style="color: #1F2937; font-weight: 600;">{{ objeto.fecha_suceso|date:"d/m/Y" }}</div>
+        </div>
+      </div>
+
+      <!-- Descripción Pública -->
+      <div style="background: #F9FAFB; padding: 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; border: 1px solid #E5E7EB;">
+        <strong style="font-size: 0.85rem; color: #4B5563; text-transform: uppercase;">Descripción General:</strong>
+        <p style="margin: 0.3rem 0 0 0; color: #1F2937; font-size: 0.92rem;">
+          {{ objeto.descripcion_publica }}
+        </p>
+      </div>
+
+      <!-- Área Privada / Propietario -->
+      {% if token_valido %}
+        <div style="background: #FEF3C7; border: 1px solid #FCD34D; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+            <strong style="color: #92400E; font-size: 0.95rem;">
+              <i class="fa-solid fa-lock-open"></i> Información de Verificación Privada (Acceso Propietario)
+            </strong>
+            <span class="badge" style="background: #D97706; color: #FFF;">Token Validado</span>
+          </div>
+          <div style="margin-bottom: 0.75rem; font-size: 0.9rem; color: #78350F;">
+            <strong>Tu Seña Secreta de Cotejo:</strong> {{ objeto.clave_verificacion_privada }}
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.8rem; background: #FFF; padding: 0.6rem 1rem; border-radius: var(--radius-sm); border: 1px dashed #D97706;">
+            <span style="font-weight: 700; color: #92400E;">Token de Retiro:</span>
+            <span style="font-size: 1.25rem; font-weight: 900; letter-spacing: 0.2em; color: #78350F;">{{ objeto.token_retiro }}</span>
+            <button type="button" class="btn btn-secondary btn-sm btn-copiar-token" data-token="{{ objeto.token_retiro }}" style="margin-left: auto;">
+              Copiar
+            </button>
+          </div>
+        </div>
+      {% else %}
+        <div style="background: #F3F4F6; border: 1px dashed #D1D5DB; border-radius: var(--radius-md); padding: 1.25rem; text-align: center; margin-bottom: 1.5rem;">
+          <i class="fa-solid fa-shield-halved" style="color: #9CA3AF; font-size: 1.4rem; margin-bottom: 0.4rem;"></i>
+          <div style="font-weight: 600; color: #4B5563; font-size: 0.95rem;">
+            ¿Eres el propietario o quien reportó este objeto?
+          </div>
+          <p style="font-size: 0.85rem; color: #6B7280; margin: 0.2rem 0 0.8rem 0;">
+            Ingresa tu <strong>Token de 6 dígitos</strong> en la barra superior para desbloquear la clave privada y tus comprobantes.
+          </p>
+        </div>
+      {% endif %}
+
+      <!-- Botón de regreso -->
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="{% url 'buscar_objetos' %}" class="btn btn-secondary">
+          &larr; Volver al Catálogo
+        </a>
+        <a href="{% url 'home' %}" class="btn btn-secondary">
+          Inicio
+        </a>
+      </div>
+
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
   if (paso1 && paso2 && btnIrPaso2 && btnVolverPaso1) {
     btnIrPaso2.addEventListener('click', () => {
       // Validar campos mínimos del paso 1
+      const contactoNombre = document.getElementById('id_contacto_nombre');
+      if (contactoNombre && contactoNombre.required && !contactoNombre.value.trim()) {
+        alert('Por favor indica tu nombre completo de contacto antes de continuar.');
+        contactoNombre.focus();
+        return;
+      }
+
       const subcategoria = document.getElementById('id_subcategoria');
       const categoria = document.getElementById('id_categoria');
       if (subcategoria && !subcategoria.value.trim()) {

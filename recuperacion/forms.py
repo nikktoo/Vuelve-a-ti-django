@@ -68,9 +68,8 @@ class LoginFormPersonalizado(AuthenticationForm):
 
 class ObjetoPerdidoForm(forms.ModelForm):
     """
-    Formulario estructurado en 2 pasos para reporte de objetos perdidos:
-    Paso 1: Clasificación y ubicación
-    Paso 2: Descripción pública y clave secreta de verificación
+    Formulario estructurado en 2 pasos para reporte de objetos perdidos.
+    Soporta Modo Registrado y Modo Invitado (Híbrido).
     """
     class Meta:
         model = Objeto
@@ -81,6 +80,9 @@ class ObjetoPerdidoForm(forms.ModelForm):
             'marca',
             'ubicacion',
             'fecha_suceso',
+            'contacto_nombre',
+            'contacto_email',
+            'contacto_telefono',
             'descripcion_publica',
             'clave_verificacion_privada'
         ]
@@ -91,6 +93,9 @@ class ObjetoPerdidoForm(forms.ModelForm):
             'marca': 'Marca o Fabricante (Opcional)',
             'ubicacion': 'Área común o sector donde lo extraviaste',
             'fecha_suceso': 'Fecha aproximada de extravío',
+            'contacto_nombre': 'Tu Nombre Completo',
+            'contacto_email': 'Correo Electrónico de Contacto',
+            'contacto_telefono': 'Teléfono o WhatsApp',
             'descripcion_publica': 'Descripción Pública (Visible)',
             'clave_verificacion_privada': 'Clave de Verificación Privada (Confidencial)',
         }
@@ -98,6 +103,9 @@ class ObjetoPerdidoForm(forms.ModelForm):
             'descripcion_publica': 'Resumen visible para búsquedas sin revelar datos privados (ej: "Control remoto negro con dos botones redondos").',
             'clave_verificacion_privada': 'Detalle exclusivo que solo tú conoces para validar tu propiedad al retirarlo (ej: "Tiene cinta adhesiva roja en la tapa de pilas").',
             'fecha_suceso': 'Selecciona la fecha estimada.',
+            'contacto_nombre': 'Indica cómo te llamas para identificarte en conserjería.',
+            'contacto_email': 'Te avisaremos si el sistema detecta coincidencias.',
+            'contacto_telefono': 'Número de contacto para que conserjería se comunique contigo.',
         }
         widgets = {
             'categoria': forms.Select(attrs={'class': 'form-select'}),
@@ -106,15 +114,41 @@ class ObjetoPerdidoForm(forms.ModelForm):
             'marca': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: BFT, Sony, Samsung, Cuero'}),
             'ubicacion': forms.Select(attrs={'class': 'form-select'}),
             'fecha_suceso': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'contacto_nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: Camila Muñoz'}),
+            'contacto_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ej: camila@correo.cl'}),
+            'contacto_telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: +56 9 8765 4321'}),
             'descripcion_publica': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Describe el objeto de forma general...'}),
             'clave_verificacion_privada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Escribe una seña particular, detalle interno o marca secreta...'}),
         }
+
+    def __init__(self, *args, es_invitado=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.es_invitado = es_invitado
+        if self.es_invitado:
+            self.fields['contacto_nombre'].required = True
+        else:
+            self.fields['contacto_nombre'].required = False
+            self.fields['contacto_email'].required = False
+            self.fields['contacto_telefono'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.es_invitado:
+            nombre = cleaned_data.get('contacto_nombre')
+            email = cleaned_data.get('contacto_email')
+            telefono = cleaned_data.get('contacto_telefono')
+
+            if not nombre:
+                self.add_error('contacto_nombre', "Debes indicar tu nombre completo en Modo Invitado.")
+            if not email and not telefono:
+                self.add_error('contacto_email', "Ingresa al menos un correo o teléfono para poder contactarte ante cualquier novedad.")
+        return cleaned_data
 
 
 class ObjetoEncontradoForm(forms.ModelForm):
     """
     Formulario para registrar objetos hallados.
-    Permite a la conserjería asignar casillero/locker físico de custodia.
+    Permite registrar a usuarios autenticados, conserjes o visitantes invitados.
     """
     class Meta:
         model = Objeto
@@ -126,6 +160,9 @@ class ObjetoEncontradoForm(forms.ModelForm):
             'ubicacion',
             'ubicacion_bodega',
             'fecha_suceso',
+            'contacto_nombre',
+            'contacto_email',
+            'contacto_telefono',
             'descripcion_publica',
             'clave_verificacion_privada'
         ]
@@ -137,6 +174,9 @@ class ObjetoEncontradoForm(forms.ModelForm):
             'ubicacion': 'Área común donde fue hallado',
             'ubicacion_bodega': 'Ubicación física en custodia (Locker / Casillero)',
             'fecha_suceso': 'Fecha del hallazgo',
+            'contacto_nombre': 'Tu Nombre Completo',
+            'contacto_email': 'Correo Electrónico (Opcional)',
+            'contacto_telefono': 'Teléfono o WhatsApp (Opcional)',
             'descripcion_publica': 'Descripción Pública del objeto',
             'clave_verificacion_privada': 'Detalle o seña particular para corroborar al dueño',
         }
@@ -148,9 +188,41 @@ class ObjetoEncontradoForm(forms.ModelForm):
             'ubicacion': forms.Select(attrs={'class': 'form-select'}),
             'ubicacion_bodega': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: Casillero 3 - Bodega Conserjería'}),
             'fecha_suceso': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'contacto_nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: Andrés Soto'}),
+            'contacto_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ej: andres@correo.cl'}),
+            'contacto_telefono': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ej: +56 9 1234 5678'}),
             'descripcion_publica': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Detalles generales visibles para la comunidad...'}),
             'clave_verificacion_privada': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Detalle secreto que deberá confirmar quien lo reclame...'}),
         }
+
+    def __init__(self, *args, es_invitado=False, es_conserje=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.es_invitado = es_invitado
+        self.es_conserje = es_conserje
+
+        if self.es_invitado:
+            self.fields['contacto_nombre'].required = True
+            # Los invitados no seleccionan casillero de bodega
+            if 'ubicacion_bodega' in self.fields:
+                self.fields['ubicacion_bodega'].required = False
+                self.fields['ubicacion_bodega'].widget = forms.HiddenInput()
+        else:
+            self.fields['contacto_nombre'].required = False
+            self.fields['contacto_email'].required = False
+            self.fields['contacto_telefono'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.es_invitado:
+            nombre = cleaned_data.get('contacto_nombre')
+            email = cleaned_data.get('contacto_email')
+            telefono = cleaned_data.get('contacto_telefono')
+
+            if not nombre:
+                self.add_error('contacto_nombre', "Debes indicar tu nombre para dejar constancia de quién entregó el hallazgo.")
+            if not email and not telefono:
+                self.add_error('contacto_email', "Ingresa al menos un medio de contacto (correo o teléfono).")
+        return cleaned_data
 
 
 class ValidacionEntregaForm(forms.Form):

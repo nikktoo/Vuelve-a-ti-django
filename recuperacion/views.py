@@ -113,24 +113,39 @@ def dashboard(request):
     })
 
 
-@login_required
 def reportar_perdido(request):
     """
-    RF-02: Registrar objeto perdido mediante asistente estructurado en 2 pasos:
-    Paso 1: Clasificación y Ubicación
-    Paso 2: Descripción textual y Clave de Verificación Privada
+    RF-02: Registrar objeto perdido mediante asistente estructurado en 2 pasos.
+    Soporta Modo Registrado (Residente) y Modo Invitado (Visitante sin cuenta).
     """
+    es_invitado = not request.user.is_authenticated
+
     if request.method == 'POST':
-        form = ObjetoPerdidoForm(request.POST)
+        form = ObjetoPerdidoForm(request.POST, es_invitado=es_invitado)
         if form.is_valid():
             objeto = form.save(commit=False)
             objeto.tipo_registro = 'perdido'
-            objeto.usuario_reporta = request.user
             objeto.estado = 'registrado'
+
+            if not es_invitado:
+                objeto.usuario_reporta = request.user
+                objeto.es_invitado = False
+            else:
+                objeto.usuario_reporta = None
+                objeto.es_invitado = True
+
             objeto.save()
+
+            # Guardar en sesión para permitir acceso al invitado
+            guest_objs = request.session.get('guest_objects', [])
+            guest_objs.append(objeto.id)
+            request.session['guest_objects'] = guest_objs
 
             # Ejecutar motor de coincidencias automáticas (RF-05)
             coincidencias = ejecutar_motor_coincidencias(objeto)
+
+            if es_invitado:
+                return redirect('reporte_exitoso_invitado', codigo=objeto.codigo_seguimiento)
 
             if coincidencias:
                 messages.success(
@@ -145,35 +160,58 @@ def reportar_perdido(request):
                 )
                 return redirect('detalle_objeto', pk=objeto.pk)
     else:
-        form = ObjetoPerdidoForm()
+        initial = {}
+        if not es_invitado:
+            initial['contacto_nombre'] = request.user.get_full_name() or request.user.username
+            initial['contacto_email'] = request.user.email
+            initial['contacto_telefono'] = request.user.telefono
+        form = ObjetoPerdidoForm(es_invitado=es_invitado, initial=initial)
 
-    return render(request, 'recuperacion/reportar_perdido.html', {'form': form})
+    return render(request, 'recuperacion/reportar_perdido.html', {
+        'form': form,
+        'es_invitado': es_invitado,
+    })
 
 
-@login_required
 def reportar_hallazgo(request):
     """
-    RF-03: Registrar objeto encontrado (por vecino o conserje).
+    RF-03: Registrar objeto encontrado (por vecino, conserje o visitante invitado).
     Si es conserje, se solicita obligatoriamente el casillero o locker de bodega.
     """
-    es_conserje = request.user.es_conserje_o_admin()
+    es_invitado = not request.user.is_authenticated
+    es_conserje = request.user.is_authenticated and request.user.es_conserje_o_admin()
 
     if request.method == 'POST':
-        form = ObjetoEncontradoForm(request.POST)
+        form = ObjetoEncontradoForm(request.POST, es_invitado=es_invitado, es_conserje=es_conserje)
         if form.is_valid():
             objeto = form.save(commit=False)
             objeto.tipo_registro = 'encontrado'
-            objeto.usuario_reporta = request.user
             objeto.estado = 'registrado'
-            
-            # Si un residente lo encontró sin asignar casillero, se define custodia en recepción
+
+            if not es_invitado:
+                objeto.usuario_reporta = request.user
+                objeto.es_invitado = False
+            else:
+                objeto.usuario_reporta = None
+                objeto.es_invitado = True
+                if not objeto.ubicacion_bodega:
+                    objeto.ubicacion_bodega = "Entregado a Conserjería por Visitante"
+
             if not objeto.ubicacion_bodega:
                 objeto.ubicacion_bodega = "Entregado a Conserjería Central"
 
             objeto.save()
 
+            if es_invitado:
+                guest_objs = request.session.get('guest_objects', [])
+                guest_objs.append(objeto.id)
+                request.session['guest_objects'] = guest_objs
+
             # Motor de coincidencias
             coincidencias = ejecutar_motor_coincidencias(objeto)
+
+            if es_invitado:
+                return redirect('reporte_exitoso_invitado', codigo=objeto.codigo_seguimiento)
 
             if coincidencias:
                 messages.success(
@@ -190,15 +228,19 @@ def reportar_hallazgo(request):
                 return redirect('conserjeria_panel')
             return redirect('detalle_objeto', pk=objeto.pk)
     else:
-        # Prellenar ubicación por defecto si es conserje
         initial_data = {}
         if es_conserje:
             initial_data['ubicacion_bodega'] = 'Bodega Central - Estante A'
-        form = ObjetoEncontradoForm(initial=initial_data)
+        elif not es_invitado:
+            initial_data['contacto_nombre'] = request.user.get_full_name() or request.user.username
+            initial_data['contacto_email'] = request.user.email
+            initial_data['contacto_telefono'] = request.user.telefono
+        form = ObjetoEncontradoForm(initial=initial_data, es_invitado=es_invitado, es_conserje=es_conserje)
 
     return render(request, 'recuperacion/reportar_hallazgo.html', {
         'form': form,
-        'es_conserje': es_conserje
+        'es_conserje': es_conserje,
+        'es_invitado': es_invitado,
     })
 
 
@@ -247,7 +289,6 @@ def buscar_objetos(request):
     })
 
 
-@login_required
 def detalle_objeto(request, pk):
     """
     Ficha del objeto.
@@ -255,8 +296,19 @@ def detalle_objeto(request, pk):
     solo son visibles por el dueño del reporte o por personal de conserjería/admin.
     """
     objeto = get_object_or_404(Objeto, pk=pk)
-    es_dueño = (objeto.usuario_reporta == request.user)
-    es_personal = request.user.es_conserje_o_admin()
+    
+    es_dueño = False
+    es_personal = False
+
+    if request.user.is_authenticated:
+        es_dueño = (objeto.usuario_reporta == request.user)
+        es_personal = request.user.es_conserje_o_admin()
+    else:
+        # Modo invitado: Si el objeto fue creado en esta sesión o tiene token en URL
+        guest_objs = request.session.get('guest_objects', [])
+        token_param = request.GET.get('token', '').strip()
+        if objeto.id in guest_objs or (token_param and token_param == objeto.token_retiro):
+            es_dueño = True
 
     # Coincidencias relacionadas
     coincidencias = []
@@ -271,6 +323,59 @@ def detalle_objeto(request, pk):
         'es_dueño': es_dueño,
         'es_personal': es_personal,
         'coincidencias': coincidencias,
+    })
+
+
+def reporte_exitoso_invitado(request, codigo):
+    """
+    Pantalla de confirmación para reportes realizados en Modo Invitado.
+    Entrega el código de seguimiento y el token secreto de retiro.
+    """
+    objeto = get_object_or_404(Objeto, codigo_seguimiento=codigo)
+    coincidencias = []
+    if objeto.tipo_registro == 'perdido':
+        coincidencias = objeto.coincidencias_como_perdido.all()
+    else:
+        coincidencias = objeto.coincidencias_como_encontrado.all()
+
+    return render(request, 'recuperacion/reporte_exitoso_invitado.html', {
+        'objeto': objeto,
+        'coincidencias': coincidencias,
+    })
+
+
+def consultar_seguimiento(request):
+    """
+    Permite a cualquier usuario (invitado o registrado) consultar el estado
+    de un objeto mediante su código de seguimiento (ej: VT-2026-XXXX).
+    """
+    codigo = request.GET.get('codigo', '').strip()
+    token = request.GET.get('token', '').strip()
+    objeto = None
+    error = None
+    token_valido = False
+
+    if codigo:
+        try:
+            objeto = Objeto.objects.select_related('categoria', 'ubicacion', 'usuario_reporta').get(
+                codigo_seguimiento__iexact=codigo
+            )
+            guest_objs = request.session.get('guest_objects', [])
+            if token and token == objeto.token_retiro:
+                token_valido = True
+            elif request.user.is_authenticated and (objeto.usuario_reporta == request.user or request.user.es_conserje_o_admin()):
+                token_valido = True
+            elif objeto.id in guest_objs:
+                token_valido = True
+        except Objeto.DoesNotExist:
+            error = f"No se encontró ningún reporte con el código '{codigo}'."
+
+    return render(request, 'recuperacion/consultar_seguimiento.html', {
+        'codigo': codigo,
+        'token': token,
+        'objeto': objeto,
+        'error': error,
+        'token_valido': token_valido,
     })
 
 
@@ -363,7 +468,10 @@ def validar_entrega(request, pk):
                 objeto_custodiado.entregado_a = objeto_reclamo.usuario_reporta
                 objeto_custodiado.entregado_por = request.user
                 objeto_custodiado.fecha_entrega = timezone.now()
-                objeto_custodiado.observaciones_entrega = observaciones
+                obs_extra = ""
+                if not objeto_reclamo.usuario_reporta:
+                    obs_extra = f" [Entregado a invitado: {objeto_reclamo.contacto_nombre} ({objeto_reclamo.contacto_telefono or objeto_reclamo.contacto_email})]"
+                objeto_custodiado.observaciones_entrega = f"{observaciones}{obs_extra}".strip()
                 objeto_custodiado.save()
 
                 if objeto_reclamo != objeto_custodiado:
@@ -371,20 +479,21 @@ def validar_entrega(request, pk):
                     objeto_reclamo.entregado_a = objeto_reclamo.usuario_reporta
                     objeto_reclamo.entregado_por = request.user
                     objeto_reclamo.fecha_entrega = timezone.now()
-                    objeto_reclamo.observaciones_entrega = observaciones
+                    objeto_reclamo.observaciones_entrega = f"{observaciones}{obs_extra}".strip()
                     objeto_reclamo.save()
 
                 if coincidencia:
                     coincidencia.estado = 'resuelta'
                     coincidencia.save()
 
-                # Notificar al dueño
-                Notificacion.objects.create(
-                    usuario=objeto_reclamo.usuario_reporta,
-                    titulo="¡Objeto devuelto formalmente!",
-                    mensaje=f"Tu objeto '{objeto_reclamo.subcategoria}' ha sido entregado en conserjería con éxito.",
-                    url_destino=f"/objeto/{objeto_custodiado.id}/"
-                )
+                # Notificar al dueño si es usuario registrado
+                if objeto_reclamo.usuario_reporta:
+                    Notificacion.objects.create(
+                        usuario=objeto_reclamo.usuario_reporta,
+                        titulo="¡Objeto devuelto formalmente!",
+                        mensaje=f"Tu objeto '{objeto_reclamo.subcategoria}' ha sido entregado en conserjería con éxito.",
+                        url_destino=f"/objeto/{objeto_custodiado.id}/"
+                    )
 
                 messages.success(request, f"¡Entrega confirmada con éxito! El objeto {objeto_custodiado.codigo_seguimiento} fue marcado como ENTREGADO.")
                 return redirect('conserjeria_panel')
@@ -449,18 +558,19 @@ def detalle_coincidencia(request, pk):
                 emisor=user,
                 mensaje=texto
             )
-            # Notificar al receptor
+            # Notificar al receptor si es usuario registrado
             otro_usuario = (
                 coincidencia.objeto_encontrado.usuario_reporta
                 if coincidencia.objeto_perdido.usuario_reporta == user
                 else coincidencia.objeto_perdido.usuario_reporta
             )
-            Notificacion.objects.create(
-                usuario=otro_usuario,
-                titulo=f"Nuevo mensaje sobre tu objeto ({coincidencia.objeto_perdido.subcategoria})",
-                mensaje=f"{user.first_name or user.username}: {texto[:60]}...",
-                url_destino=f"/coincidencias/{coincidencia.id}/"
-            )
+            if otro_usuario:
+                Notificacion.objects.create(
+                    usuario=otro_usuario,
+                    titulo=f"Nuevo mensaje sobre tu objeto ({coincidencia.objeto_perdido.subcategoria})",
+                    mensaje=f"{user.first_name or user.username}: {texto[:60]}...",
+                    url_destino=f"/coincidencias/{coincidencia.id}/"
+                )
             return redirect('detalle_coincidencia', pk=pk)
 
     return render(request, 'recuperacion/detalle_coincidencia.html', {

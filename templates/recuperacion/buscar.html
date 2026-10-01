@@ -9,13 +9,27 @@
   <!-- Filtro y Buscador estilo Mockup -->
   <div class="card" style="background-color: #F8F4EE; border: 1px solid var(--color-border-dark); padding: 1.8rem; border-radius: var(--radius-lg);">
     
-    <div style="margin-bottom: 1.25rem;">
-      <h2 style="font-size: 1.5rem; font-weight: 800; color: #2B1E16;">
-        <i class="fa-solid fa-magnifying-glass"></i> Catálogo de Objetos
-      </h2>
-      <p style="font-size: 0.9rem; color: #756356;">
-        Consulta artículos registrados respetando la privacidad de la comunidad (Ley N° 19.628).
-      </p>
+    <div style="margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h2 style="font-size: 1.5rem; font-weight: 800; color: #2B1E16; margin-bottom: 0.2rem;">
+          <i class="fa-solid fa-magnifying-glass"></i> Catálogo de Objetos
+        </h2>
+        <p style="font-size: 0.9rem; color: #756356; margin: 0;">
+          Consulta artículos registrados.
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+        <a href="{% url 'reportar_perdido' %}" class="btn btn-primary btn-sm" style="background-color: var(--color-primary); color: #FFF;">
+          <i class="fa-solid fa-plus-circle"></i> Reportar Extravío
+        </a>
+        <a href="{% url 'reportar_hallazgo' %}" class="btn btn-secondary btn-sm">
+          <i class="fa-solid fa-hand-holding-hand"></i> Reportar Hallazgo
+        </a>
+        <a href="{% url 'consultar_seguimiento' %}" class="btn btn-secondary btn-sm" title="Consultar por código de seguimiento">
+          <i class="fa-solid fa-location-crosshairs"></i> Seguimiento
+        </a>
+      </div>
     </div>
 
     <form method="GET" style="display: flex; flex-direction: column; gap: 1rem;">

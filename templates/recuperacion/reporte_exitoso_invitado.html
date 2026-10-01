@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reporte Registrado con Éxito{% endblock %}
+
+{% block content %}
+<div style="max-width: 680px; margin: 1.5rem auto;">
+
+  <div class="card" style="padding: 2.5rem 2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 1px solid var(--color-border-dark); text-align: center;">
+
+    <!-- Icono de éxito -->
+    <div style="width: 64px; height: 64px; border-radius: 50%; background: #057A55; color: #FFF; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(5, 122, 85, 0.25);">
+      <i class="fa-solid fa-check"></i>
+    </div>
+
+    <h2 style="font-size: 1.8rem; font-weight: 800; color: #2B1E16; margin-bottom: 0.4rem;">
+      ¡Tu reporte ha sido registrado con éxito!
+    </h2>
+    <p style="font-size: 0.95rem; color: #756356; max-width: 520px; margin: 0 auto 1.8rem auto;">
+      {% if objeto.tipo_registro == 'perdido' %}
+        Hemos ingresado tu aviso al sistema del <strong>Edificio Plaza Centro</strong>. Nuestro algoritmo ya comenzó a cruzarlo con los objetos en custodia.
+      {% else %}
+        Agradecemos tu honestidad y colaboración ciudadana. El hallazgo ha quedado registrado en el inventario del edificio.
+      {% endif %}
+    </p>
+
+    <!-- Caja con Código de Seguimiento y Token -->
+    <div style="background: #FFFFFF; border: 2px dashed #8F623F; border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
+      <div class="grid-2" style="align-items: center; gap: 1.5rem;">
+        <div>
+          <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: #8F623F; letter-spacing: 0.05em;">
+            Código de Seguimiento
+          </span>
+          <div style="font-size: 1.6rem; font-weight: 800; color: #2B1E16; letter-spacing: -0.01em;">
+            {{ objeto.codigo_seguimiento }}
+          </div>
+          <small style="color: #6B7280; font-size: 0.8rem;">Úsalo para consultar el estado en cualquier momento.</small>
+        </div>
+
+        {% if objeto.tipo_registro == 'perdido' %}
+          <div style="background: #FDF6B2; padding: 0.9rem 1.1rem; border-radius: var(--radius-sm); border: 1px solid #FACC15; text-align: center;">
+            <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: #723B13;">
+              <i class="fa-solid fa-key"></i> Token Secreto de Retiro
+            </span>
+            <div style="font-size: 1.8rem; font-weight: 900; color: #723B13; letter-spacing: 0.25em; margin: 0.2rem 0;">
+              {{ objeto.token_retiro }}
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm btn-copiar-token" data-token="{{ objeto.token_retiro }}" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+              <i class="fa-regular fa-copy"></i> Copiar Token
+            </button>
+            <div style="font-size: 0.75rem; color: #723B13; margin-top: 0.3rem;">
+              Preséntalo al conserje para corroborar que eres el dueño.
+            </div>
+          </div>
+        {% else %}
+          <div style="background: #DEF7EC; padding: 0.9rem 1.1rem; border-radius: var(--radius-sm); border: 1px solid #31C48D; text-align: center;">
+            <span style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: #03543F;">
+              <i class="fa-solid fa-box"></i> Custodia
+            </span>
+            <div style="font-size: 1rem; font-weight: 700; color: #03543F; margin-top: 0.3rem;">
+              {{ objeto.ubicacion_bodega|default:"Entregar en Conserjería" }}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Si se detectaron coincidencias automáticas -->
+    {% if coincidencias %}
+      <div style="background-color: #FEF08A; border: 1px solid #CA8A04; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 2rem; text-align: left;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; color: #854D0E; font-weight: 700; font-size: 1.05rem; margin-bottom: 0.5rem;">
+          <i class="fa-solid fa-bell" style="font-size: 1.3rem;"></i>
+          <span>¡Atención! Hemos detectado {{ coincidencias|length }} coincidencia(s) en custodia</span>
+        </div>
+        <p style="font-size: 0.88rem; color: #713F12; margin: 0 0 0.75rem 0;">
+          Hay artículos registrados previamente en bodega que tienen alta similitud con tu reporte.
+          Te recomendamos acercarte a la <strong>Conserjería Central</strong> indicando tu código <strong>{{ objeto.codigo_seguimiento }}</strong>.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          {% for match in coincidencias %}
+            <div style="background: rgba(255,255,255,0.7); padding: 0.6rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.85rem; color: #2B1E16; display: flex; justify-content: space-between; align-items: center;">
+              <span>
+                <strong>{% if objeto.tipo_registro == 'perdido' %}{{ match.objeto_encontrado.subcategoria }}{% else %}{{ match.objeto_perdido.subcategoria }}{% endif %}</strong>
+                en {% if objeto.tipo_registro == 'perdido' %}{{ match.objeto_encontrado.ubicacion.nombre }}{% else %}{{ match.objeto_perdido.ubicacion.nombre }}{% endif %}
+              </span>
+              <span class="badge badge-success">{{ match.porcentaje_similitud }}% afinidad</span>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Resumen del reporte -->
+    <div style="text-align: left; background: #EFE4D6; padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+      <h4 style="font-size: 0.95rem; font-weight: 700; color: #2B1E16; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 0.4rem;">
+        Resumen de la Ficha Registrada
+      </h4>
+      <div class="grid-2" style="font-size: 0.88rem; color: #4A3B32;">
+        <div><strong>Artículo:</strong> {{ objeto.subcategoria }}</div>
+        <div><strong>Categoría:</strong> {{ objeto.categoria.nombre }}</div>
+        <div><strong>Color:</strong> {{ objeto.color_principal }}</div>
+        <div><strong>Sector:</strong> {{ objeto.ubicacion.nombre }}</div>
+        <div><strong>Contacto Registrado:</strong> {{ objeto.get_reportante_display }}</div>
+        <div><strong>Fecha:</strong> {{ objeto.fecha_suceso|date:"d/m/Y" }}</div>
+      </div>
+    </div>
+
+    <!-- Acciones -->
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <a href="{% url 'consultar_seguimiento' %}?codigo={{ objeto.codigo_seguimiento }}&token={{ objeto.token_retiro }}" class="btn btn-primary" style="padding: 0.75rem 1.6rem;">
+        <i class="fa-solid fa-magnifying-glass-location"></i> Ver Ficha de Seguimiento
+      </a>
+      <a href="{% url 'buscar_objetos' %}" class="btn btn-secondary" style="padding: 0.75rem 1.6rem;">
+        <i class="fa-solid fa-list"></i> Consultar Catálogo
+      </a>
+      <a href="{% url 'home' %}" class="btn btn-secondary" style="padding: 0.75rem 1.4rem;">
+        <i class="fa-solid fa-house"></i> Inicio
+      </a>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

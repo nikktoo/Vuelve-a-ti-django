@@ -36,6 +36,11 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
           </a>
         </li>
+        <li>
+          <a href="{% url 'consultar_seguimiento' %}" class="nav-link {% if request.resolver_match.url_name == 'consultar_seguimiento' %}active{% endif %}">
+            <i class="fa-solid fa-location-crosshairs"></i> Seguimiento
+          </a>
+        </li>
 
         {% if user.is_authenticated %}
           <li>
@@ -88,8 +93,11 @@
             <i class="fa-solid fa-right-from-bracket"></i> Salir
           </a>
         {% else %}
-          <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Iniciar Sesión</a>
-          <a href="{% url 'registro' %}" class="btn btn-primary btn-sm">Registrarse</a>
+          <a href="{% url 'reportar_perdido' %}" class="btn btn-primary btn-sm" title="Reportar objeto sin cuenta">
+            <i class="fa-solid fa-plus"></i> Reportar
+          </a>
+          <a href="{% url 'login' %}" class="btn btn-secondary btn-sm">Ingresar</a>
+          <a href="{% url 'registro' %}" class="btn btn-secondary btn-sm">Registro</a>
         {% endif %}
       </div>
     </div>
@@ -115,11 +123,8 @@
   <!-- Pie de Página -->
   <footer>
     <div class="container">
-      <p style="font-weight: 600; color: var(--color-primary-dark); margin-bottom: 0.25rem;">
-        Vuelve a ti — Sistema Centralizado de Recuperación de Objetos
-      </p>
-      <p>
-        Edificio Plaza Centro, Concepción &bull; Proyecto Técnico Universitario en Informática (UTFSM) &bull; Cumplimiento estricto Ley N° 19.628 de Protección de la Vida Privada
+      <p style="font-weight: 600; color: var(--color-primary-dark); margin: 0;">
+        Vuelve a ti — Sistema de Recuperación de Objetos
       </p>
     </div>
   </footer>

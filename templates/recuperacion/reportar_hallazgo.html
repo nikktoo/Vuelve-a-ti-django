@@ -15,10 +15,58 @@
       <p style="font-size: 0.9rem; color: #756356; margin-top: 0.2rem;">
         Gracias por tu honestidad. Ingresa los datos para que el sistema localice al propietario.
       </p>
+
+      {% if es_invitado %}
+        <div style="background-color: #EBF5FB; border-left: 4px solid #3F83F8; padding: 0.9rem 1.1rem; border-radius: var(--radius-sm); margin-top: 1rem; text-align: left; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.6rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fa-solid fa-hand-holding-hand" style="font-size: 1.3rem; color: #1C64F2;"></i>
+            <div>
+              <strong style="color: #1E429F; font-size: 0.92rem;">Modo Invitado (Sin Registro)</strong>
+              <div style="font-size: 0.82rem; color: #4B5563;">
+                Puedes registrar el hallazgo de inmediato. Por favor entrega el objeto físico en el mesón de conserjería para su custodia.
+              </div>
+            </div>
+          </div>
+          <a href="{% url 'login' %}?next={% url 'reportar_hallazgo' %}" class="btn btn-secondary btn-sm" style="background: #FFF; font-size: 0.78rem;">
+            ¿Tienes cuenta? Ingresa aquí
+          </a>
+        </div>
+      {% endif %}
     </div>
 
     <form method="POST">
       {% csrf_token %}
+
+      {% if es_invitado %}
+        <div style="background: #EFE4D6; padding: 1.15rem; border-radius: var(--radius-md); margin-bottom: 1.4rem; border: 1px dashed var(--color-primary);">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; color: var(--color-primary-dark); font-weight: 700; font-size: 0.95rem;">
+            <i class="fa-solid fa-address-card"></i> Tus Datos de Contacto
+          </div>
+          <div class="form-group" style="margin-bottom: 0.75rem;">
+            <label class="form-label">Tu Nombre Completo *</label>
+            {{ form.contacto_nombre }}
+            {% if form.contacto_nombre.errors %}
+              <div style="color: #E02424; font-size: 0.8rem; margin-top: 0.2rem;">{{ form.contacto_nombre.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="grid-2">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Correo Electrónico (Opcional)</label>
+              {{ form.contacto_email }}
+              {% if form.contacto_email.errors %}
+                <div style="color: #E02424; font-size: 0.8rem; margin-top: 0.2rem;">{{ form.contacto_email.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label">Teléfono o WhatsApp (Opcional)</label>
+              {{ form.contacto_telefono }}
+              {% if form.contacto_telefono.errors %}
+                <div style="color: #E02424; font-size: 0.8rem; margin-top: 0.2rem;">{{ form.contacto_telefono.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endif %}
 
       <div class="form-group">
         <label class="form-label">¿Qué objeto encontraste? *</label>
@@ -52,15 +100,23 @@
         {{ form.ubicacion }}
       </div>
 
-      <div class="form-group" style="background: #E8EFE9; padding: 1rem; border-radius: var(--radius-md); border: 1px solid #A7F3D0;">
-        <label class="form-label" style="color: #065F46; font-weight: 700;">
-          <i class="fa-solid fa-box-archive"></i> Ubicación física de custodia (Locker o Casillero)
-        </label>
-        {{ form.ubicacion_bodega }}
-        <div class="form-help" style="color: #047857;">
-          Ej: "Bodega Conserjería - Locker 3", "Caja fuerte recepción", "Entregado a conserje de turno".
+      {% if not es_invitado %}
+        <div class="form-group" style="background: #E8EFE9; padding: 1rem; border-radius: var(--radius-md); border: 1px solid #A7F3D0;">
+          <label class="form-label" style="color: #065F46; font-weight: 700;">
+            <i class="fa-solid fa-box-archive"></i> Ubicación física de custodia (Locker o Casillero)
+          </label>
+          {{ form.ubicacion_bodega }}
+          <div class="form-help" style="color: #047857;">
+            Ej: "Bodega Conserjería - Locker 3", "Caja fuerte recepción", "Entregado a conserje de turno".
+          </div>
         </div>
-      </div>
+      {% else %}
+        {{ form.ubicacion_bodega }}
+        <div style="background: #FEF3C7; border: 1px solid #FCD34D; color: #92400E; padding: 0.85rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.25rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.6rem;">
+          <i class="fa-solid fa-circle-info" style="font-size: 1.1rem;"></i>
+          <span>Por favor, entrega este objeto al <strong>conserje de turno en recepción</strong> para que quede bajo resguardo en casillero oficial.</span>
+        </div>
+      {% endif %}
 
       <div class="form-group">
         <label class="form-label">Descripción Pública (Visible) *</label>

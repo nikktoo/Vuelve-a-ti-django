@@ -110,7 +110,7 @@ def ejecutar_motor_coincidencias(objeto):
                 coincidencias_generadas.append(coincidencia)
 
                 # Generar notificación si la coincidencia es relevante y fue creada o alta
-                if creada and score >= 60.0:
+                if creada and score >= 60.0 and objeto.usuario_reporta:
                     Notificacion.objects.create(
                         usuario=objeto.usuario_reporta,
                         titulo="¡Posible coincidencia encontrada!",
@@ -139,7 +139,7 @@ def ejecutar_motor_coincidencias(objeto):
                 )
                 coincidencias_generadas.append(coincidencia)
 
-                if creada and score >= 60.0:
+                if creada and score >= 60.0 and cand.usuario_reporta:
                     Notificacion.objects.create(
                         usuario=cand.usuario_reporta,
                         titulo="¡Nuevo hallazgo que coincide con tu reporte!",
