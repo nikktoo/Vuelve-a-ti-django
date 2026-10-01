@@ -1,0 +1,417 @@
+/* ==========================================================================
+   Vuelve a Ti - Sistema de Recuperación de Objetos
+   Paleta de Colores Inspirada en los Mockups Oficiales (Tonos Tierra y Arena)
+   ========================================================================== */
+
+:root {
+  --color-bg: #F7F3ED;
+  --color-surface: #FFFFFF;
+  --color-surface-soft: #EFE7DE;
+  --color-card-beige: #D9C4B2;
+  --color-card-brown: #9E7453;
+  --color-primary: #8F623F;
+  --color-primary-hover: #754E2F;
+  --color-primary-dark: #382417;
+  --color-text-main: #2A1D15;
+  --color-text-muted: #6B5B50;
+  --color-border: #DBCDBF;
+  --color-border-dark: #A6917E;
+
+  --color-success: #15803D;
+  --color-warning: #B45309;
+  --color-danger: #B91C1C;
+  --color-info: #0284C7;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+
+  --shadow-sm: 0 1px 3px rgba(56, 36, 23, 0.07);
+  --shadow-md: 0 4px 14px rgba(56, 36, 23, 0.1);
+  --shadow-lg: 0 10px 25px rgba(56, 36, 23, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor General */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+/* Barra de Navegación */
+.navbar {
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.85rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow-sm);
+}
+
+.navbar .nav-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--color-primary);
+  color: #FFF;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  list-style: none;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: var(--color-text-main);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nav-link:hover {
+  color: var(--color-primary);
+}
+
+.nav-link.active {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--color-card-brown);
+  color: #FFF;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-secondary {
+  background-color: var(--color-surface-soft);
+  color: var(--color-text-main);
+  border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: #E4D9CC;
+}
+
+.btn-dark {
+  background-color: var(--color-primary-dark);
+  color: #FFF;
+}
+
+.btn-dark:hover {
+  background-color: #21150C;
+}
+
+.btn-success {
+  background-color: var(--color-success);
+  color: #FFF;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-lg {
+  padding: 0.85rem 1.6rem;
+  font-size: 1.05rem;
+  border-radius: var(--radius-lg);
+}
+
+/* Tarjetas y Contenedores */
+.card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.card-beige {
+  background-color: var(--color-card-beige);
+  border: 1px solid var(--color-border-dark);
+  color: var(--color-primary-dark);
+}
+
+/* Badges y Chips */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  letter-spacing: 0.03em;
+}
+
+.badge-perdido {
+  background-color: #FDE8E8;
+  color: #9B1C1C;
+  border: 1px solid #F8B4B4;
+}
+
+.badge-encontrado {
+  background-color: #DEF7EC;
+  color: #03543F;
+  border: 1px solid #BCF0DA;
+}
+
+.badge-registrado {
+  background-color: #E1EFFE;
+  color: #1E429F;
+}
+
+.badge-en_verificacion {
+  background-color: #FEF08A;
+  color: #854D0E;
+}
+
+.badge-entregado {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-dado_de_baja {
+  background-color: #F3F4F6;
+  color: #374151;
+}
+
+/* Formularios */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.4rem;
+  color: var(--color-text-main);
+}
+
+.form-control, .form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  background-color: #FFF;
+  border: 1px solid var(--color-border-dark);
+  border-radius: var(--radius-md);
+  color: var(--color-text-main);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+
+.form-control:focus, .form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(143, 98, 63, 0.15);
+}
+
+.form-help {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+/* Mockup Frame (Visualización de Estilo Móvil) */
+.mobile-mockup-wrapper {
+  max-width: 440px;
+  margin: 2rem auto;
+  background: var(--color-surface);
+  border: 12px solid #2B1E16;
+  border-radius: 40px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.mobile-notch {
+  width: 120px;
+  height: 18px;
+  background: #2B1E16;
+  margin: 0 auto 10px auto;
+  border-radius: 0 0 14px 14px;
+}
+
+.mobile-screen {
+  padding: 1.25rem;
+  background-color: #F5EAE0;
+  min-height: 650px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabla de Inventario de Conserjería */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-custom {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.table-custom th {
+  background-color: var(--color-surface-soft);
+  color: var(--color-text-main);
+  font-weight: 700;
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.table-custom td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.table-custom tr:hover {
+  background-color: rgba(217, 196, 178, 0.15);
+}
+
+/* Mensajes y Alertas */
+.alert {
+  padding: 0.85rem 1.2rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.alert-success {
+  background-color: #DEF7EC;
+  color: #03543F;
+  border: 1px solid #BCF0DA;
+}
+
+.alert-info {
+  background-color: #E1EFFE;
+  color: #1E429F;
+  border: 1px solid #B4C6E7;
+}
+
+.alert-warning {
+  background-color: #FDF6B2;
+  color: #723B10;
+  border: 1px solid #FCE96A;
+}
+
+.alert-danger {
+  background-color: #FDE8E8;
+  color: #9B1C1C;
+  border: 1px solid #F8B4B4;
+}
+
+/* Grid Utilities */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .nav-links {
+    display: none; /* Mobile view adapt */
+  }
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  padding: 1.5rem 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}

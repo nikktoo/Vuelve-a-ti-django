@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cotejo de Coincidencia & Chat Seguro{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 1rem auto; display: flex; flex-direction: column; gap: 1.5rem;">
+
+  <!-- Cabecera de Afinidad -->
+  <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-sm);">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+        <span class="badge" style="background: #2B1E16; color: #FFF; font-size: 0.95rem; padding: 4px 12px;">
+          <i class="fa-solid fa-bolt"></i> {{ coincidencia.porcentaje_similitud }}% AFINIDAD
+        </span>
+        <span class="badge badge-{{ coincidencia.estado }}">{{ coincidencia.get_estado_display }}</span>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--color-text-muted);">
+        Factores: <strong>{{ coincidencia.criterios_match }}</strong>
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      {% if user.es_conserje_o_admin %}
+        <a href="{% url 'validar_entrega' coincidencia.objeto_encontrado.id %}" class="btn btn-success btn-sm">
+          <i class="fa-solid fa-check-double"></i> Proceder a Entrega
+        </a>
+      {% endif %}
+      <a href="{% url 'coincidencias_lista' %}" class="btn btn-secondary btn-sm">
+        &larr; Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Comparativa Lado a Lado de los Objetos -->
+  <div class="grid-2">
+    <!-- Ficha Objeto Perdido -->
+    <div class="card" style="border-top: 4px solid #9B1C1C;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span class="badge badge-perdido">Objeto Perdido</span>
+        <span style="font-family: monospace; font-size: 0.8rem; font-weight: 700;">{{ coincidencia.objeto_perdido.codigo_seguimiento }}</span>
+      </div>
+      <h3 style="font-size: 1.25rem; color: var(--color-primary-dark); margin-bottom: 0.3rem;">
+        {{ coincidencia.objeto_perdido.subcategoria }}
+      </h3>
+      <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+        Reportado por: Residente ({{ coincidencia.objeto_perdido.usuario_reporta.departamento_torre|default:"Vecino" }})
+      </div>
+      <div style="font-size: 0.88rem; line-height: 1.5; display: flex; flex-direction: column; gap: 0.25rem;">
+        <div><strong>Categoría:</strong> {{ coincidencia.objeto_perdido.categoria.nombre }}</div>
+        <div><strong>Color:</strong> {{ coincidencia.objeto_perdido.color_principal }}</div>
+        <div><strong>Lugar:</strong> {{ coincidencia.objeto_perdido.ubicacion.nombre }}</div>
+        <div><strong>Fecha:</strong> {{ coincidencia.objeto_perdido.fecha_suceso|date:"d/m/Y" }}</div>
+        <div style="margin-top: 0.4rem; background: #F8F4EE; padding: 0.6rem; border-radius: var(--radius-sm);">
+          <strong>Descripción:</strong> {{ coincidencia.objeto_perdido.descripcion_publica }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Ficha Objeto Hallado -->
+    <div class="card" style="border-top: 4px solid #047857;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <span class="badge badge-encontrado">Objeto Encontrado</span>
+        <span style="font-family: monospace; font-size: 0.8rem; font-weight: 700;">{{ coincidencia.objeto_encontrado.codigo_seguimiento }}</span>
+      </div>
+      <h3 style="font-size: 1.25rem; color: var(--color-primary-dark); margin-bottom: 0.3rem;">
+        {{ coincidencia.objeto_encontrado.subcategoria }}
+      </h3>
+      <div style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+        Custodia: <strong style="color: #065F46;">{{ coincidencia.objeto_encontrado.ubicacion_bodega|default:"Conserjería" }}</strong>
+      </div>
+      <div style="font-size: 0.88rem; line-height: 1.5; display: flex; flex-direction: column; gap: 0.25rem;">
+        <div><strong>Categoría:</strong> {{ coincidencia.objeto_encontrado.categoria.nombre }}</div>
+        <div><strong>Color:</strong> {{ coincidencia.objeto_encontrado.color_principal }}</div>
+        <div><strong>Lugar:</strong> {{ coincidencia.objeto_encontrado.ubicacion.nombre }}</div>
+        <div><strong>Fecha:</strong> {{ coincidencia.objeto_encontrado.fecha_suceso|date:"d/m/Y" }}</div>
+        <div style="margin-top: 0.4rem; background: #F8F4EE; padding: 0.6rem; border-radius: var(--radius-sm);">
+          <strong>Descripción:</strong> {{ coincidencia.objeto_encontrado.descripcion_publica }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Seguro de Coordinación (Privacidad Garantizada) -->
+  <div class="card" style="padding: 1.5rem; background: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--color-border); padding-bottom: 0.6rem;">
+      <h3 style="font-size: 1.15rem; color: #2B1E16; font-weight: 700; margin: 0;">
+        <i class="fa-solid fa-comments"></i> Canal Seguro de Coordinación y Entrega
+      </h3>
+      <span class="badge" style="background: #E1EFFE; color: #1E429F;">
+        <i class="fa-solid fa-lock"></i> Chat Encriptado Interno
+      </span>
+    </div>
+
+    <!-- Historial de Mensajes -->
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 350px; overflow-y: auto; padding: 0.5rem; background: #FFF; border-radius: var(--radius-md); border: 1px solid var(--color-border); margin-bottom: 1rem;">
+      {% if mensajes %}
+        {% for msg in mensajes %}
+          <div style="display: flex; flex-direction: column; align-items: {% if msg.emisor == user %}flex-end{% else %}flex-start{% endif %};">
+            <div style="max-width: 75%; background: {% if msg.emisor == user %}#8F623F{% else %}#EFE4D6{% endif %}; color: {% if msg.emisor == user %}#FFF{% else %}#2B1E16{% endif %}; padding: 0.65rem 1rem; border-radius: 14px; font-size: 0.9rem; line-height: 1.4;">
+              <div style="font-size: 0.75rem; opacity: 0.85; margin-bottom: 0.2rem; font-weight: 700;">
+                {{ msg.emisor.first_name|default:msg.emisor.username }} ({{ msg.emisor.get_rol_display }})
+              </div>
+              {{ msg.mensaje }}
+              <div style="font-size: 0.7rem; opacity: 0.75; text-align: right; margin-top: 0.2rem;">
+                {{ msg.fecha_envio|date:"H:i" }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align: center; padding: 2rem; color: var(--color-text-muted); font-size: 0.88rem;">
+          <i class="fa-regular fa-comment-dots" style="font-size: 1.8rem; margin-bottom: 0.4rem;"></i>
+          <p>No hay mensajes en este chat aún. Escribe aquí para coordinar el retiro en conserjería.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Formulario para Enviar Mensaje -->
+    <form method="POST" style="display: flex; gap: 0.6rem;">
+      {% csrf_token %}
+      <input 
+        type="text" 
+        name="mensaje" 
+        required 
+        placeholder="Escribe un mensaje seguro (ej: Hola, iré a conserjería hoy a las 18:00 hrs)..." 
+        class="form-control" 
+        style="background: #FFF;"
+      >
+      <button type="submit" class="btn btn-primary">
+        <i class="fa-solid fa-paper-plane"></i> Enviar
+      </button>
+    </form>
+  </div>
+
+</div>
+{% endblock %}

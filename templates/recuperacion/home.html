@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inicio - Plataforma Comunitaria{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 2.5rem; margin-top: 1rem;">
+
+  <!-- Hero Section estilo Mockup -->
+  <div style="background: linear-gradient(135deg, #3B281C 0%, #754E2F 100%); color: #FFF; border-radius: var(--radius-lg); padding: 3rem 2rem; box-shadow: var(--shadow-md); text-align: center;">
+    <div style="display: inline-block; background: rgba(255,255,255,0.15); border-radius: 50%; padding: 1rem; margin-bottom: 1rem;">
+      <i class="fa-solid fa-parking" style="font-size: 2.5rem;"></i>
+    </div>
+    <h1 style="font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.5rem;">
+      VUELVE A TI
+    </h1>
+    <p style="font-size: 1.15rem; color: #E8DDD0; max-width: 650px; margin: 0 auto 1.8rem auto;">
+      Sistema centralizado de recuperación de objetos perdidos y encontrados en el <strong>Edificio Plaza Centro (Concepción)</strong>. Conexión segura, custodia ordenada y privacidad garantizada.
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <a href="{% url 'reportar_perdido' %}" class="btn btn-primary btn-lg" style="background-color: #D7C2AF; color: #2B1E16;">
+        <i class="fa-solid fa-circle-question"></i> Perdí un objeto
+      </a>
+      <a href="{% url 'reportar_hallazgo' %}" class="btn btn-secondary btn-lg" style="background-color: transparent; color: #FFF; border-color: rgba(255,255,255,0.4);">
+        <i class="fa-solid fa-hand-holding-hand"></i> Encontré algo
+      </a>
+      <a href="{% url 'buscar_objetos' %}" class="btn btn-secondary btn-lg" style="background-color: rgba(255,255,255,0.2); color: #FFF; border: none;">
+        <i class="fa-solid fa-magnifying-glass"></i> Consultar catálogo
+      </a>
+    </div>
+  </div>
+
+  <!-- Métricas Rápidas en Tarjetas Cálidas -->
+  <div class="grid-3">
+    <div class="card card-beige" style="text-align: center;">
+      <div style="font-size: 2.2rem; font-weight: 800; color: #3B281C;">{{ total_recuperados }}</div>
+      <div style="font-weight: 600; font-size: 0.95rem; margin-top: 0.2rem;">Objetos Devueltos a sus Dueños</div>
+      <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.2rem;">Tasa de éxito con verificación segura</div>
+    </div>
+    <div class="card card-beige" style="text-align: center;">
+      <div style="font-size: 2.2rem; font-weight: 800; color: #3B281C;">{{ total_custodia }}</div>
+      <div style="font-weight: 600; font-size: 0.95rem; margin-top: 0.2rem;">Artículos en Bodega / Custodia</div>
+      <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.2rem;">Resguardados en casilleros de conserjería</div>
+    </div>
+    <div class="card card-beige" style="text-align: center;">
+      <div style="font-size: 2.2rem; font-weight: 800; color: #3B281C;">{{ total_recintos }}</div>
+      <div style="font-weight: 600; font-size: 0.95rem; margin-top: 0.2rem;">Áreas y Sectores Monitoreados</div>
+      <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 0.2rem;">Torres, estacionamientos y espacios comunes</div>
+    </div>
+  </div>
+
+  <!-- Pilares del Sistema y Privacidad -->
+  <div class="card" style="padding: 2rem;">
+    <h2 style="font-size: 1.4rem; color: var(--color-primary-dark); margin-bottom: 1.25rem;">
+      ¿Cómo funciona el sistema "Vuelve a ti"?
+    </h2>
+    <div class="grid-3">
+      <div style="display: flex; gap: 0.85rem;">
+        <div style="font-size: 1.6rem; color: var(--color-primary);">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div>
+          <h4 style="font-size: 1.05rem; margin-bottom: 0.3rem;">1. Registro Estructurado</h4>
+          <p style="font-size: 0.88rem; color: var(--color-text-muted);">
+            Se ingresan atributos objetivos (categoría, color, área y fecha) junto a una <strong>Clave Secreta de Validación</strong> que solo tú conoces.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.85rem;">
+        <div style="font-size: 1.6rem; color: var(--color-primary);">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div>
+          <h4 style="font-size: 1.05rem; margin-bottom: 0.3rem;">2. Coincidencia Inteligente</h4>
+          <p style="font-size: 0.88rem; color: var(--color-text-muted);">
+            El motor algorítmico cruza los reportes en tiempo real y calcula un porcentaje de afinidad, alertándote de inmediato si hay coincidencia.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 0.85rem;">
+        <div style="font-size: 1.6rem; color: var(--color-primary);">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <h4 style="font-size: 1.05rem; margin-bottom: 0.3rem;">3. Validación y Entrega</h4>
+          <p style="font-size: 0.88rem; color: var(--color-text-muted);">
+            El conserje coteja el detalle privado contra el objeto físico y corrobora el <strong>Token de 6 dígitos</strong> antes de entregarlo.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categorías de Objetos -->
+  <div>
+    <h3 style="font-size: 1.25rem; color: var(--color-primary-dark); margin-bottom: 1rem;">
+      Categorías de Objetos Frecuentes
+    </h3>
+    <div style="display: flex; flex-wrap: wrap; gap: 0.75rem;">
+      {% for cat in categorias %}
+        <a href="{% url 'buscar_objetos' %}?categoria={{ cat.id }}" class="btn btn-secondary" style="font-size: 0.9rem;">
+          <span style="font-size: 1.1rem; margin-right: 0.3rem;">{{ cat.icono }}</span>
+          {{ cat.nombre }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

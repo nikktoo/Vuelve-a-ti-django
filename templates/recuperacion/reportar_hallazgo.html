@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportar Objeto Encontrado{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 1rem auto;">
+  <div class="card" style="padding: 2.2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    
+    <div style="margin-bottom: 1.8rem; text-align: center;">
+      <div style="width: 50px; height: 50px; background: #047857; color: #FFF; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 0.6rem;">
+        <i class="fa-solid fa-hand-holding-heart"></i>
+      </div>
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #2B1E16;">Reportar Objeto Encontrado</h2>
+      <p style="font-size: 0.9rem; color: #756356; margin-top: 0.2rem;">
+        Gracias por tu honestidad. Ingresa los datos para que el sistema localice al propietario.
+      </p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">¿Qué objeto encontraste? *</label>
+        {{ form.subcategoria }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Categoría General *</label>
+          {{ form.categoria }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Color Principal *</label>
+          {{ form.color_principal }}
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Marca o Fabricante (Si es visible)</label>
+          {{ form.marca }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha del Hallazgo *</label>
+          {{ form.fecha_suceso }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Área común donde fue hallado *</label>
+        {{ form.ubicacion }}
+      </div>
+
+      <div class="form-group" style="background: #E8EFE9; padding: 1rem; border-radius: var(--radius-md); border: 1px solid #A7F3D0;">
+        <label class="form-label" style="color: #065F46; font-weight: 700;">
+          <i class="fa-solid fa-box-archive"></i> Ubicación física de custodia (Locker o Casillero)
+        </label>
+        {{ form.ubicacion_bodega }}
+        <div class="form-help" style="color: #047857;">
+          Ej: "Bodega Conserjería - Locker 3", "Caja fuerte recepción", "Entregado a conserje de turno".
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descripción Pública (Visible) *</label>
+        {{ form.descripcion_publica }}
+        <div class="form-help">Datos generales sin divulgar contenidos secretos.</div>
+      </div>
+
+      <div class="form-group" style="background: #EFE4D6; padding: 1.25rem; border-radius: var(--radius-md); border: 1px dashed var(--color-primary);">
+        <label class="form-label" style="color: var(--color-primary-dark); font-weight: 700;">
+          <i class="fa-solid fa-shield-halved"></i> Detalle o Seña Particular para Validar al Dueño
+        </label>
+        {{ form.clave_verificacion_privada }}
+        <div class="form-help" style="color: #6E533F;">
+          Indica una característica oculta que quien lo reclame deba confirmar para asegurar que es el legítimo dueño.
+        </div>
+      </div>
+
+      <div style="margin-top: 1.8rem;">
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+          <i class="fa-solid fa-check-circle"></i> Registrar Hallazgo e Iniciar Cruce
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

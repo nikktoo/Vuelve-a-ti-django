@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Validación de Entrega - Conserjería{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 1rem auto;">
+  <div class="card" style="padding: 2.2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 2px solid var(--color-primary);">
+    
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <div style="width: 50px; height: 50px; background: #059669; color: #FFF; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 0.5rem;">
+        <i class="fa-solid fa-handshake-angle"></i>
+      </div>
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #2B1E16;">
+        Protocolo de Validación y Entrega
+      </h2>
+      <p style="font-size: 0.9rem; color: #756356;">
+        Cotejo de Clave Secreta y Token de Retiro para el objeto <strong>{{ objeto.codigo_seguimiento }}</strong>
+      </p>
+    </div>
+
+    <!-- Ficha de Verificación del Objeto en Custodia -->
+    <div style="background: #FFF; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.25rem; color: #2B1E16; font-weight: 800; margin: 0;">{{ objeto.subcategoria }}</h3>
+          <span style="font-size: 0.85rem; color: var(--color-text-muted);">
+            Locker asignado: <strong style="color: #065F46;">{{ objeto.ubicacion_bodega|default:"Custodia Central" }}</strong>
+          </span>
+        </div>
+        <span class="badge badge-{{ objeto.estado }}">{{ objeto.get_estado_display }}</span>
+      </div>
+
+      <div style="font-size: 0.88rem; color: #524136; margin-top: 0.5rem; line-height: 1.4;">
+        <div><strong>Color / Marca:</strong> {{ objeto.color_principal }} {% if objeto.marca %}&bull; {{ objeto.marca }}{% endif %}</div>
+        <div><strong>Hallado en:</strong> {{ objeto.ubicacion.nombre }} el {{ objeto.fecha_suceso|date:"d M Y" }}</div>
+      </div>
+    </div>
+
+    <!-- 1. COTEJO FÍSICO: Clave de Verificación Privada del Dueño -->
+    <div style="background: #FEF3C7; border: 1px solid #F59E0B; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.4rem; color: #92400E; font-weight: 700;">
+        <i class="fa-solid fa-eye"></i> Paso 1: Corroborar Seña Particular contra el Objeto Físico
+      </div>
+      <p style="font-size: 0.85rem; color: #78350F; margin-bottom: 0.75rem;">
+        Revisa el objeto que tienes en tus manos en conserjería y confirma que coincida con el detalle secreto que describió el dueño:
+      </p>
+      <div style="background: #FFF; padding: 0.85rem; border-radius: var(--radius-sm); font-size: 0.95rem; font-weight: 600; color: #2B1E16; border: 1px dashed #D97706;">
+        "{{ objeto_reclamo.clave_verificacion_privada|default:objeto.clave_verificacion_privada }}"
+      </div>
+    </div>
+
+    <!-- 2. FORMULARIO: Token de Retiro y Confirmación -->
+    <form method="POST">
+      {% csrf_token %}
+
+      <div style="background: #FFF; border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="color: var(--color-primary-dark); font-weight: 700; margin-bottom: 0.3rem;">
+          <i class="fa-solid fa-key"></i> Paso 2: Ingresar Token de Retiro del Propietario
+        </div>
+        <p style="font-size: 0.85rem; color: var(--color-text-muted); margin-bottom: 0.85rem;">
+          Solicita al residente que te muestre el token de 6 dígitos que figura en su aplicación:
+        </p>
+        
+        <div class="form-group" style="max-width: 250px; margin: 0 auto 1rem auto;">
+          {{ form.token_retiro }}
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.85rem;">Observaciones de entrega (opcional):</label>
+          {{ form.observaciones }}
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="{% url 'conserjeria_panel' %}" class="btn btn-secondary">
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-success" style="padding: 0.85rem 2rem; font-size: 1rem;">
+          <i class="fa-solid fa-check-circle"></i> Confirmar Entrega Definitiva
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+{% endblock %}

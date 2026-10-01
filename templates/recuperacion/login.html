@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block content %}
+<div style="max-width: 440px; margin: 2rem auto;">
+  <div class="card" style="padding: 2.2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    
+    <div style="text-align: center; margin-bottom: 1.8rem;">
+      <div style="width: 52px; height: 52px; background: #3B281C; color: #FFF; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.75rem;">
+        <i class="fa-solid fa-parking"></i>
+      </div>
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #2B1E16;">Bienvenido vuelve a ti</h2>
+      <p style="font-size: 0.9rem; color: #756356; margin-top: 0.2rem;">Ingresa tus credenciales para continuar</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label class="form-label" style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #524136;">
+          USUARIO O CORREO ELECTRÓNICO
+        </label>
+        {{ form.username }}
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <label class="form-label" style="text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #524136; margin: 0;">
+            CONTRASEÑA
+          </label>
+          <span style="font-size: 0.78rem; color: var(--color-primary); cursor: pointer;">¿Olvidaste tu contraseña?</span>
+        </div>
+        {{ form.password }}
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; margin-top: 0.5rem; border-radius: var(--radius-md);">
+        Iniciar Sesión
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.8rem; font-size: 0.9rem; color: #6E5C50;">
+      ¿No tienes una cuenta? <a href="{% url 'registro' %}" style="color: var(--color-primary); font-weight: 700; text-decoration: none;">Regístrate aquí</a>
+    </div>
+
+    <!-- Guía Rápida de Acceso Demo para Evaluación -->
+    <div style="margin-top: 2rem; padding: 1rem; background-color: #EFE4D6; border-radius: var(--radius-sm); font-size: 0.8rem; border: 1px dashed var(--color-border-dark);">
+      <div style="font-weight: 700; color: #3B281C; margin-bottom: 0.4rem;">
+        <i class="fa-solid fa-key"></i> Cuentas de Demostración:
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <div>&bull; <strong>Conserje:</strong> <code>conserje1</code> / <code>conserje123</code></div>
+        <div>&bull; <strong>Residente (Thalya):</strong> <code>thalya</code> / <code>thalya123</code></div>
+        <div>&bull; <strong>Residente (Juan):</strong> <code>juan</code> / <code>juan123</code></div>
+        <div>&bull; <strong>Administrador:</strong> <code>admin</code> / <code>admin123</code></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

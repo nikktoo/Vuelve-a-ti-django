@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Cuenta - Regístrate{% endblock %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 1.5rem auto;">
+  <div class="card" style="padding: 2.2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    
+    <div style="margin-bottom: 1.8rem;">
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #2B1E16;">Regístrate</h2>
+      <p style="font-size: 0.9rem; color: #756356; margin-top: 0.2rem;">Únete a vuelve a ti y encuentra tus objetos</p>
+    </div>
+
+    <form method="POST">
+      {% csrf_token %}
+      
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Nombres</label>
+          {{ form.first_name }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Apellidos</label>
+          {{ form.last_name }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nombre de Usuario</label>
+        {{ form.username }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Correo Electrónico</label>
+        {{ form.email }}
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Teléfono</label>
+          {{ form.telefono }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Usuario</label>
+          {{ form.rol }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Torre y Depto / Oficina</label>
+        {{ form.departamento_torre }}
+        <div class="form-help">Ej: Torre A - Depto 502 / Oficina 301</div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          {{ form.password }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Contraseña</label>
+          {{ form.password_confirm }}
+        </div>
+      </div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger" style="font-size: 0.85rem; padding: 0.6rem;">
+          {{ form.errors }}
+        </div>
+      {% endif %}
+
+      <div class="form-group" style="display: flex; align-items: flex-start; gap: 0.6rem; margin-top: 0.5rem;">
+        <input type="checkbox" id="acepto-terminos" required style="margin-top: 0.25rem;">
+        <label for="acepto-terminos" style="font-size: 0.85rem; color: #524136;">
+          Acepto los <strong>Términos de Servicio</strong> y la <strong>Política de Privacidad</strong>. Mis datos personales no serán expuestos públicamente en cumplimiento de la Ley N° 19.628 de Chile.
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; margin-top: 0.5rem; border-radius: var(--radius-md);">
+        Registrarse
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 1.6rem; font-size: 0.9rem; color: #6E5C50;">
+      ¿Ya tienes una cuenta? <a href="{% url 'login' %}" style="color: var(--color-primary); font-weight: 700; text-decoration: none;">Inicia sesión aquí</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

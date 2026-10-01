@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Recintos y Sectores{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 1.8rem;">
+
+  <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-sm);">
+    <div>
+      <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primary-dark); margin: 0;">
+        <i class="fa-solid fa-map-location-dot"></i> Gestión de Recintos y Lugares (RF-08)
+      </h1>
+      <p style="font-size: 0.88rem; color: var(--color-text-muted); margin-top: 0.2rem;">
+        Administración de sectores, casetas, lockers y asignación de personal de conserjería.
+      </p>
+    </div>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-sm">
+      &larr; Volver al Panel
+    </a>
+  </div>
+
+  <div class="grid-2">
+    <!-- Formulario para Añadir Recinto -->
+    <div class="card" style="background: #F8F4EE; border: 1px solid var(--color-border-dark);">
+      <h3 style="font-size: 1.15rem; color: #2B1E16; margin-bottom: 1rem;">
+        + Agregar Nuevo Sector o Caseta
+      </h3>
+      <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Nombre del Sector *</label>
+          {{ form.nombre }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Recinto *</label>
+          {{ form.tipo }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción</label>
+          {{ form.descripcion }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Encargado Asignado (Conserje)</label>
+          {{ form.encargado }}
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+          {{ form.activo }}
+          <label class="form-label" style="margin: 0;">Sector Habilitado</label>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+          Guardar Sector
+        </button>
+      </form>
+    </div>
+
+    <!-- Lista de Sectores Configurados -->
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 1rem 1.25rem; background: var(--color-surface-soft); font-weight: 700; color: var(--color-primary-dark);">
+        Sectores Actuales en Edificio Plaza Centro
+      </div>
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>NOMBRE</th>
+              <th>TIPO</th>
+              <th>ENCARGADO</th>
+              <th>ESTADO</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in recintos %}
+              <tr>
+                <td><strong>{{ r.nombre }}</strong></td>
+                <td><span class="badge badge-registrado">{{ r.get_tipo_display }}</span></td>
+                <td>{{ r.encargado.get_full_name|default:"Sin asignar" }}</td>
+                <td>
+                  {% if r.activo %}
+                    <span style="color: #059669; font-weight: 700;"><i class="fa-solid fa-check"></i> Activo</span>
+                  {% else %}
+                    <span style="color: #9B1C1C;">Inactivo</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--color-text-muted);">No hay sectores registrados.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

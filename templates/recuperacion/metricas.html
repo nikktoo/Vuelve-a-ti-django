@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportes Estadísticos & Métricas{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 2rem;">
+
+  <!-- Cabecera de Estadísticas -->
+  <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.8rem; box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.7rem; font-weight: 800; color: var(--color-primary-dark); margin-bottom: 0.25rem;">
+        <i class="fa-solid fa-chart-pie"></i> Analítica & Reportes Estadísticos (RF-10)
+      </h1>
+      <p style="font-size: 0.9rem; color: var(--color-text-muted);">
+        Métricas clave de gestión para la administración del <strong>Edificio Plaza Centro, Concepción</strong>.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{% url 'historial_avanzado' %}" class="btn btn-secondary btn-sm">
+        <i class="fa-solid fa-clock-rotate-left"></i> Historial Completo
+      </a>
+      <a href="{% url 'conserjeria_panel' %}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-building-user"></i> Panel Conserjería
+      </a>
+    </div>
+  </div>
+
+  <!-- Indicadores de Impacto Principal -->
+  <div class="grid-4">
+    <div class="card card-beige" style="text-align: center; padding: 1.4rem;">
+      <div style="font-size: 2.4rem; font-weight: 800; color: #15803D;">{{ tasa_recuperacion }}%</div>
+      <div style="font-weight: 700; font-size: 0.95rem; margin-top: 0.2rem;">Tasa de Recuperación</div>
+      <div style="font-size: 0.78rem; color: var(--color-text-muted);">Porcentaje devuelto formalmente</div>
+    </div>
+
+    <div class="card card-beige" style="text-align: center; padding: 1.4rem;">
+      <div style="font-size: 2.4rem; font-weight: 800; color: #047857;">{{ total_entregados }}</div>
+      <div style="font-weight: 700; font-size: 0.95rem; margin-top: 0.2rem;">Objetos Resueltos</div>
+      <div style="font-size: 0.78rem; color: var(--color-text-muted);">Entregas efectivas en mesón</div>
+    </div>
+
+    <div class="card card-beige" style="text-align: center; padding: 1.4rem;">
+      <div style="font-size: 2.4rem; font-weight: 800; color: #B45309;">{{ total_encontrados }}</div>
+      <div style="font-weight: 700; font-size: 0.95rem; margin-top: 0.2rem;">Hallazgos Ingresados</div>
+      <div style="font-size: 0.78rem; color: var(--color-text-muted);">Artículos recibidos en custodia</div>
+    </div>
+
+    <div class="card card-beige" style="text-align: center; padding: 1.4rem;">
+      <div style="font-size: 2.4rem; font-weight: 800; color: #9B1C1C;">{{ total_perdidos }}</div>
+      <div style="font-weight: 700; font-size: 0.95rem; margin-top: 0.2rem;">Extravíos Reportados</div>
+      <div style="font-size: 0.78rem; color: var(--color-text-muted);">Solicitudes de residentes</div>
+    </div>
+  </div>
+
+  <!-- Gráficos / Tablas de Zonas Críticas y Top Categorías -->
+  <div class="grid-2">
+    
+    <!-- Zonas Críticas con Mayor Incidencia -->
+    <div class="card" style="padding: 1.5rem;">
+      <h3 style="font-size: 1.2rem; color: var(--color-primary-dark); font-weight: 700; margin-bottom: 1rem;">
+        <i class="fa-solid fa-map-location-dot"></i> Zonas de Mayor Incidencia en el Edificio
+      </h3>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for zona in zonas_criticas %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: var(--color-surface-soft); border-radius: var(--radius-sm);">
+            <span style="font-weight: 600; font-size: 0.9rem; color: #2B1E16;">{{ zona.nombre }}</span>
+            <span class="badge" style="background: #2B1E16; color: #FFF;">{{ zona.total_reportes }} eventos</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Categorías de Artículos más Frecuentes -->
+    <div class="card" style="padding: 1.5rem;">
+      <h3 style="font-size: 1.2rem; color: var(--color-primary-dark); font-weight: 700; margin-bottom: 1rem;">
+        <i class="fa-solid fa-tags"></i> Artículos más Extraviados por Categoría
+      </h3>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for cat in categorias_top %}
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: var(--color-surface-soft); border-radius: var(--radius-sm);">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span>{{ cat.icono }}</span>
+              <span style="font-weight: 600; font-size: 0.9rem; color: #2B1E16;">{{ cat.nombre }}</span>
+            </div>
+            <span class="badge" style="background: var(--color-primary); color: #FFF;">{{ cat.total_items }} artículos</span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Registro de Entregas Recientes con Trazabilidad -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.2rem; color: var(--color-primary-dark); font-weight: 700; margin-bottom: 1rem;">
+      <i class="fa-solid fa-clipboard-check"></i> Auditoría de Entregas Formales Recientes
+    </h3>
+    <div class="table-responsive">
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th>OBJETO</th>
+            <th>ENTREGADO A</th>
+            <th>FUNCIONARIO RESPONSABLE</th>
+            <th>FECHA DE DEVOLUCIÓN</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for obj in entregados_recientes %}
+            <tr>
+              <td><span style="font-family: monospace; font-weight: 700;">{{ obj.codigo_seguimiento }}</span></td>
+              <td><strong>{{ obj.subcategoria }}</strong></td>
+              <td>{{ obj.entregado_a.get_full_name|default:obj.entregado_a.username }}</td>
+              <td>{{ obj.entregado_por.get_full_name|default:obj.entregado_por.username }}</td>
+              <td>{{ obj.fecha_entrega|date:"d/m/Y H:i" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: var(--color-text-muted); padding: 1.5rem;">
+                No se registran entregas completadas aún.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

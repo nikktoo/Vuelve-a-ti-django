@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reportar Objeto Perdido - Asistente en 2 Pasos{% endblock %}
+
+{% block content %}
+<div style="max-width: 650px; margin: 1rem auto;">
+
+  <!-- Tarjeta Principal del Asistente -->
+  <div class="card" style="padding: 2.2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    
+    <!-- Encabezado con Indicador de Pasos -->
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <h2 style="font-size: 1.6rem; font-weight: 800; color: #2B1E16;">
+        Reportar Extravío
+      </h2>
+      <p style="font-size: 0.9rem; color: #756356; margin-top: 0.2rem;">
+        Asistente guiado para la recuperación segura de tu pertenencia
+      </p>
+
+      <div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; margin-top: 1.25rem;">
+        <div id="indicator-step-1" style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--color-primary);">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: var(--color-primary); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">1</span>
+          <span>Clasificación & Lugar</span>
+        </div>
+        <div style="height: 2px; width: 40px; background: var(--color-border-dark);"></div>
+        <div id="indicator-step-2" style="display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: #8C786A;">
+          <span style="width: 28px; height: 28px; border-radius: 50%; background: #D9C4B2; color: #2B1E16; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">2</span>
+          <span>Detalle & Clave Secreta</span>
+        </div>
+      </div>
+    </div>
+
+    <form method="POST" id="form-reportar-perdido">
+      {% csrf_token %}
+
+      <!-- ================= PASO 1 ================= -->
+      <div id="wizard-paso-1">
+        <div class="form-group">
+          <label class="form-label">¿Qué objeto perdiste? (Nombre específico) *</label>
+          {{ form.subcategoria }}
+          <div class="form-help">Ejemplo: Control Remoto Portón, Tarjeta Bip, Billetera de Cuero, Audífonos Sony.</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Categoría General *</label>
+            {{ form.categoria }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color Principal *</label>
+            {{ form.color_principal }}
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Marca o Fabricante (Opcional)</label>
+            {{ form.marca }}
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha Aproximada *</label>
+            {{ form.fecha_suceso }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Área Común o Sector del Edificio *</label>
+          {{ form.ubicacion }}
+          <div class="form-help">Selecciona el piso, estacionamiento o espacio donde sospechas que se extravió.</div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" id="btn-ir-paso-2" class="btn btn-primary" style="padding: 0.75rem 1.8rem;">
+            Continuar al Paso 2 &rarr;
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= PASO 2 ================= -->
+      <div id="wizard-paso-2" style="display: none;">
+        
+        <!-- Descripción Pública -->
+        <div class="form-group">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem;">
+            <label class="form-label" style="margin: 0;">1. Descripción Pública (Visible para la comunidad) *</label>
+            <span class="badge" style="background: #E1EFFE; color: #1E429F;">Público</span>
+          </div>
+          {{ form.descripcion_publica }}
+          <div class="form-help">
+            Resumen con datos generales sin detalles ultra-sensibles. (Ej: "Control negro rectangular con dos botones redondos y algo de desgaste").
+          </div>
+        </div>
+
+        <!-- Clave de Verificación Privada (Confidencial) -->
+        <div class="form-group" style="background: #EFE4D6; padding: 1.25rem; border-radius: var(--radius-md); border: 1px dashed var(--color-primary);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.3rem;">
+            <label class="form-label" style="color: var(--color-primary-dark); font-weight: 700; margin: 0;">
+              <i class="fa-solid fa-lock"></i> 2. Clave de Verificación Privada (Confidencial) *
+            </label>
+            <span class="badge" style="background: #FEF08A; color: #854D0E;">Estrictamente Privado</span>
+          </div>
+          {{ form.clave_verificacion_privada }}
+          <div class="form-help" style="color: #6E533F;">
+            <strong>¡Este detalle NUNCA se mostrará públicamente!</strong> Sirve para que la conserjería corrobore tu identidad física al momento de devolverte el objeto (ej: "Lleva un trozo de cinta roja en la tapa trasera de las pilas", "Contiene una tarjeta con iniciales X").
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.8rem;">
+          <button type="button" id="btn-volver-paso-1" class="btn btn-secondary">
+            &larr; Volver al Paso 1
+          </button>
+          <button type="submit" class="btn btn-primary" style="padding: 0.8rem 2rem;">
+            <i class="fa-solid fa-check"></i> Registrar y Buscar Coincidencias
+          </button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

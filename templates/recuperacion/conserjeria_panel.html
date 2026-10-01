@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Panel de Conserjería & Bodega{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 1.8rem;">
+
+  <!-- Encabezado de la Recepción -->
+  <div style="background: linear-gradient(135deg, #2A1D15 0%, #523825 100%); color: #FFF; padding: 1.8rem; border-radius: var(--radius-lg); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-md);">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;">
+        <span style="background: #E8A838; color: #2B1E16; font-weight: 800; font-size: 0.75rem; padding: 2px 8px; border-radius: var(--radius-sm); text-transform: uppercase;">
+          Mesón de Recepción
+        </span>
+        <h1 style="font-size: 1.7rem; font-weight: 800; margin: 0;">Panel de Conserjería & Inventario</h1>
+      </div>
+      <p style="font-size: 0.9rem; color: #E8DDD0;">
+        Edificio Plaza Centro (Concepción) &bull; Control digital de casilleros, lockers y custodia física en tiempo real.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{% url 'reportar_hallazgo' %}" class="btn btn-primary" style="background-color: #D7C2AF; color: #2B1E16;">
+        <i class="fa-solid fa-bolt"></i> Ingreso Exprés (&lt; 30s)
+      </a>
+      <a href="{% url 'metricas' %}" class="btn btn-secondary" style="background-color: transparent; color: #FFF; border-color: rgba(255,255,255,0.4);">
+        <i class="fa-solid fa-chart-column"></i> Estadísticas
+      </a>
+    </div>
+  </div>
+
+  <!-- Resumen de Conteos en Casilleros -->
+  <div class="grid-3">
+    <div class="card card-beige" style="text-align: center; padding: 1.25rem;">
+      <div style="font-size: 2.2rem; font-weight: 800; color: #3B281C;">{{ conteos.en_custodia }}</div>
+      <div style="font-weight: 700; font-size: 0.95rem;">Artículos en Bodega / Lockers</div>
+      <div style="font-size: 0.8rem; color: var(--color-text-muted);">Disponibles para retiro inmediato</div>
+    </div>
+    <div class="card card-beige" style="text-align: center; padding: 1.25rem;">
+      <div style="font-size: 2.2rem; font-weight: 800; color: #B45309;">{{ conteos.en_verificacion }}</div>
+      <div style="font-weight: 700; font-size: 0.95rem;">En Proceso de Verificación</div>
+      <div style="font-size: 0.8rem; color: var(--color-text-muted);">Vecino en coordinación de reclamo</div>
+    </div>
+    <div class="card card-beige" style="text-align: center; padding: 1.25rem;">
+      <div style="font-size: 2.2rem; font-weight: 800; color: #15803D;">{{ conteos.entregados }}</div>
+      <div style="font-weight: 700; font-size: 0.95rem;">Total de Entregas Exitosas</div>
+      <div style="font-size: 0.8rem; color: var(--color-text-muted);">Devueltos formalmente con token</div>
+    </div>
+  </div>
+
+  <!-- Barra de Búsqueda Permanente y Filtro Rápido -->
+  <div class="card" style="padding: 1.25rem; background-color: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 280px; position: relative;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--color-text-muted);"></i>
+        <input 
+          type="text" 
+          id="filtro-inventario-rapido" 
+          placeholder="Filtrar al instante por locker, objeto, departamento o código..." 
+          class="form-control" 
+          style="padding-left: 2.5rem; background: #FFF;"
+        >
+      </div>
+
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="?estado=" class="btn btn-sm {% if not filtro_estado %}btn-primary{% else %}btn-secondary{% endif %}">Todos</a>
+        <a href="?estado=registrado" class="btn btn-sm {% if filtro_estado == 'registrado' %}btn-primary{% else %}btn-secondary{% endif %}">En Bodega</a>
+        <a href="?estado=en_verificacion" class="btn btn-sm {% if filtro_estado == 'en_verificacion' %}btn-primary{% else %}btn-secondary{% endif %}">En Verificación</a>
+        <a href="?estado=entregado" class="btn btn-sm {% if filtro_estado == 'entregado' %}btn-primary{% else %}btn-secondary{% endif %}">Entregados</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Inventario de Bodega / Lockers -->
+  <div class="card" style="padding: 0; overflow: hidden; border-radius: var(--radius-lg);">
+    <div style="padding: 1.25rem 1.5rem; background: var(--color-surface-soft); border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--color-primary-dark); margin: 0;">
+        <i class="fa-solid fa-boxes-stacked"></i> Inventario de Custodia Física
+      </h3>
+      <span style="font-size: 0.85rem; color: var(--color-text-muted);">
+        Mostrando {{ inventario.count }} artículo{{ inventario.count|pluralize }}
+      </span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table-custom" id="tabla-inventario">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th>ARTÍCULO Y DETALLE</th>
+            <th>CATEGORÍA</th>
+            <th>UBICACIÓN EN BODEGA / LOCKER</th>
+            <th>HALLADO EN</th>
+            <th>FECHA INGRESO</th>
+            <th>ESTADO</th>
+            <th style="text-align: right;">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in inventario %}
+            <tr>
+              <td>
+                <span style="font-family: monospace; font-weight: 800; background: #EAE1D5; padding: 3px 6px; border-radius: var(--radius-sm); font-size: 0.8rem;">
+                  {{ item.codigo_seguimiento }}
+                </span>
+              </td>
+              <td>
+                <strong style="color: var(--color-primary-dark); display: block;">{{ item.subcategoria }}</strong>
+                <span style="font-size: 0.8rem; color: var(--color-text-muted);">
+                  Color: {{ item.color_principal }}{% if item.marca %} &bull; {{ item.marca }}{% endif %}
+                </span>
+              </td>
+              <td>
+                <span style="font-size: 0.85rem;">{{ item.categoria.nombre }}</span>
+              </td>
+              <td>
+                <span style="font-weight: 700; color: #065F46; background: #D1FAE5; padding: 3px 8px; border-radius: var(--radius-sm); font-size: 0.85rem;">
+                  <i class="fa-solid fa-lock"></i> {{ item.ubicacion_bodega|default:"Recepción General" }}
+                </span>
+              </td>
+              <td>
+                <span style="font-size: 0.85rem; color: #524136;">{{ item.ubicacion.nombre }}</span>
+              </td>
+              <td>
+                <span style="font-size: 0.82rem; color: var(--color-text-muted);">{{ item.fecha_registro|date:"d/m/Y H:i" }}</span>
+              </td>
+              <td>
+                <span class="badge badge-{{ item.estado }}">{{ item.get_estado_display }}</span>
+              </td>
+              <td style="text-align: right;">
+                <div style="display: inline-flex; gap: 0.4rem;">
+                  <a href="{% url 'detalle_objeto' item.id %}" class="btn btn-secondary btn-sm" title="Ver ficha">
+                    <i class="fa-solid fa-eye"></i>
+                  </a>
+                  {% if item.estado != 'entregado' %}
+                    <a href="{% url 'validar_entrega' item.id %}" class="btn btn-success btn-sm" title="Validar entrega con token">
+                      <i class="fa-solid fa-check-double"></i> Entregar
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--color-text-muted);">
+                No hay objetos en custodia registrados en este momento.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

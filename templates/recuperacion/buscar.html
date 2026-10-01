@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Búsqueda de Objetos{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+  <!-- Filtro y Buscador estilo Mockup -->
+  <div class="card" style="background-color: #F8F4EE; border: 1px solid var(--color-border-dark); padding: 1.8rem; border-radius: var(--radius-lg);">
+    
+    <div style="margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1.5rem; font-weight: 800; color: #2B1E16;">
+        <i class="fa-solid fa-magnifying-glass"></i> Catálogo de Objetos
+      </h2>
+      <p style="font-size: 0.9rem; color: #756356;">
+        Consulta artículos registrados respetando la privacidad de la comunidad (Ley N° 19.628).
+      </p>
+    </div>
+
+    <form method="GET" style="display: flex; flex-direction: column; gap: 1rem;">
+      
+      <!-- Barra Principal de Búsqueda -->
+      <div style="display: flex; gap: 0.75rem;">
+        <input 
+          type="text" 
+          name="q" 
+          value="{{ query }}" 
+          placeholder="Escribe palabra clave, objeto, color o código (ej: control, azul, VT-2026)..." 
+          class="form-control" 
+          style="font-size: 1rem; padding: 0.85rem 1.2rem; background: #FFF;"
+        >
+        <button type="submit" class="btn btn-primary" style="padding: 0 1.5rem;">
+          <i class="fa-solid fa-search"></i> Buscar
+        </button>
+      </div>
+
+      <!-- Filtros Rápidos (Tipo, Categoría, Lugar) -->
+      <div style="display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: center;">
+        
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <span style="font-size: 0.85rem; font-weight: 700; color: #524136;">Tipo:</span>
+          <select name="tipo" class="form-select" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+            <option value="encontrado" {% if tipo_filtro == 'encontrado' %}selected{% endif %}>En Custodia (Hallados)</option>
+            <option value="perdido" {% if tipo_filtro == 'perdido' %}selected{% endif %}>Búsquedas (Extraviados)</option>
+            <option value="todos" {% if tipo_filtro == 'todos' %}selected{% endif %}>Todos los Registros</option>
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <span style="font-size: 0.85rem; font-weight: 700; color: #524136;">Categoría:</span>
+          <select name="categoria" class="form-select" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+            <option value="">Todas las Categorías</option>
+            {% for cat in categorias %}
+              <option value="{{ cat.id }}" {% if categoria_sel|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>
+                {{ cat.icono }} {{ cat.nombre }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <span style="font-size: 0.85rem; font-weight: 700; color: #524136;">Área:</span>
+          <select name="ubicacion" class="form-select" style="width: auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+            <option value="">Todos los Sectores</option>
+            {% for rec in recintos %}
+              <option value="{{ rec.id }}" {% if ubicacion_sel|stringformat:"s" == rec.id|stringformat:"s" %}selected{% endif %}>
+                {{ rec.nombre }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if query or categoria_sel or ubicacion_sel %}
+          <a href="{% url 'buscar_objetos' %}" class="btn btn-secondary btn-sm" style="margin-left: auto;">
+            <i class="fa-solid fa-xmark"></i> Limpiar Filtros
+          </a>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Contador de Resultados -->
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h3 style="font-size: 1.1rem; color: var(--color-primary-dark); font-weight: 700;">
+      {{ total_resultados }} resultado{{ total_resultados|pluralize }} encontrado{{ total_resultados|pluralize }}
+    </h3>
+    <span style="font-size: 0.85rem; color: var(--color-text-muted);">
+      Mostrando artículos activos y en custodia
+    </span>
+  </div>
+
+  <!-- Lista de Tarjetas estilo Mockup -->
+  {% if objetos %}
+    <div class="grid-2">
+      {% for obj in objetos %}
+        <div class="card card-beige" style="border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s; box-shadow: var(--shadow-sm);">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+              <span class="badge {% if obj.tipo_registro == 'perdido' %}badge-perdido{% else %}badge-encontrado{% endif %}">
+                {{ obj.get_tipo_registro_display }}
+              </span>
+              <span class="badge badge-{{ obj.estado }}">
+                {{ obj.get_estado_display }}
+              </span>
+            </div>
+
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: #2B1E16; margin-bottom: 0.25rem;">
+              {{ obj.subcategoria }}
+            </h3>
+
+            <div style="font-size: 0.88rem; color: #524136; margin-bottom: 0.6rem;">
+              <i class="fa-solid fa-location-dot"></i> {{ obj.ubicacion.nombre }}
+            </div>
+
+            <p style="font-size: 0.9rem; line-height: 1.45; color: #2B1E16; margin-bottom: 1rem;">
+              {{ obj.descripcion_publica|truncatewords:25 }}
+            </p>
+
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.8rem; font-size: 0.8rem;">
+              <span style="background: rgba(255,255,255,0.7); padding: 3px 8px; border-radius: var(--radius-sm);">
+                <strong>Color:</strong> {{ obj.color_principal }}
+              </span>
+              {% if obj.marca %}
+                <span style="background: rgba(255,255,255,0.7); padding: 3px 8px; border-radius: var(--radius-sm);">
+                  <strong>Marca:</strong> {{ obj.marca }}
+                </span>
+              {% endif %}
+              <span style="background: rgba(255,255,255,0.7); padding: 3px 8px; border-radius: var(--radius-sm);">
+                <strong>Fecha:</strong> {{ obj.fecha_suceso|date:"d M Y" }}
+              </span>
+              {% if obj.ubicacion_bodega %}
+                <span style="background: #D1FAE5; color: #065F46; padding: 3px 8px; border-radius: var(--radius-sm); font-weight: 600;">
+                  <i class="fa-solid fa-lock"></i> Custodia: {{ obj.ubicacion_bodega }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--color-border-dark); padding-top: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-family: monospace; font-size: 0.8rem; color: #6E533F; font-weight: 700;">
+              {{ obj.codigo_seguimiento }}
+            </span>
+            <a href="{% url 'detalle_objeto' obj.id %}" class="btn btn-primary btn-sm" style="background-color: #8F623F;">
+              Ver Detalles / Reclamar &rarr;
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 3rem; color: var(--color-text-muted);">
+      <i class="fa-solid fa-magnifying-glass" style="font-size: 2.5rem; margin-bottom: 1rem; color: #D8C2AF;"></i>
+      <h3 style="font-size: 1.2rem; color: var(--color-primary-dark); margin-bottom: 0.5rem;">
+        No se encontraron objetos con los criterios seleccionados
+      </h3>
+      <p style="font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.2rem auto;">
+        Prueba buscando con palabras más generales o revisa si alguien ya lo entregó en conserjería central.
+      </p>
+      <a href="{% url 'reportar_perdido' %}" class="btn btn-primary btn-sm">
+        Reportar mi objeto como extraviado
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

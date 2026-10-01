@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ficha de Objeto - {{ objeto.codigo_seguimiento }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 1rem auto; display: flex; flex-direction: column; gap: 1.5rem;">
+
+  <!-- Tarjeta Principal del Objeto -->
+  <div class="card" style="padding: 2.2rem; border-radius: var(--radius-lg); background-color: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+      <div>
+        <span class="badge {% if objeto.tipo_registro == 'perdido' %}badge-perdido{% else %}badge-encontrado{% endif %}">
+          {{ objeto.get_tipo_registro_display }}
+        </span>
+        <span class="badge badge-{{ objeto.estado }}" style="margin-left: 0.35rem;">
+          {{ objeto.get_estado_display }}
+        </span>
+      </div>
+      <span style="font-family: monospace; font-size: 0.95rem; font-weight: 800; background: #EAE1D5; padding: 4px 10px; border-radius: var(--radius-sm); color: #3B281C;">
+        {{ objeto.codigo_seguimiento }}
+      </span>
+    </div>
+
+    <h1 style="font-size: 1.8rem; font-weight: 800; color: #2B1E16; margin-bottom: 0.35rem;">
+      {{ objeto.subcategoria }}
+    </h1>
+
+    <div style="font-size: 0.95rem; color: #6E533F; margin-bottom: 1.5rem;">
+      <i class="fa-solid fa-layer-group"></i> Categoría: <strong>{{ objeto.categoria.nombre }}</strong> &bull; 
+      <i class="fa-solid fa-location-dot"></i> Lugar: <strong>{{ objeto.ubicacion.nombre }}</strong>
+    </div>
+
+    <!-- Grilla de Atributos del Objeto -->
+    <div class="grid-2" style="background: rgba(255,255,255,0.7); padding: 1.25rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+      <div>
+        <span style="font-size: 0.8rem; text-transform: uppercase; color: #756356; font-weight: 700; display: block;">Color Principal</span>
+        <strong style="font-size: 1rem; color: #2B1E16;">{{ objeto.color_principal }}</strong>
+      </div>
+      <div>
+        <span style="font-size: 0.8rem; text-transform: uppercase; color: #756356; font-weight: 700; display: block;">Marca / Fabricante</span>
+        <strong style="font-size: 1rem; color: #2B1E16;">{{ objeto.marca|default:"No especificada" }}</strong>
+      </div>
+      <div>
+        <span style="font-size: 0.8rem; text-transform: uppercase; color: #756356; font-weight: 700; display: block;">Fecha del Suceso</span>
+        <strong style="font-size: 1rem; color: #2B1E16;">{{ objeto.fecha_suceso|date:"d M Y" }}</strong>
+      </div>
+      <div>
+        <span style="font-size: 0.8rem; text-transform: uppercase; color: #756356; font-weight: 700; display: block;">Fecha de Ingreso al Sistema</span>
+        <strong style="font-size: 1rem; color: #2B1E16;">{{ objeto.fecha_registro|date:"d/m/Y H:i" }}</strong>
+      </div>
+      {% if objeto.ubicacion_bodega %}
+        <div style="grid-column: 1 / -1; background: #D1FAE5; padding: 0.6rem 0.9rem; border-radius: var(--radius-sm); color: #065F46;">
+          <i class="fa-solid fa-box-archive"></i> Custodia Física en Recepción: <strong>{{ objeto.ubicacion_bodega }}</strong>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Descripción Pública -->
+    <div style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.05rem; font-weight: 700; color: #2B1E16; margin-bottom: 0.4rem;">
+        Descripción Pública
+      </h3>
+      <p style="font-size: 0.95rem; line-height: 1.6; background: #FFF; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--color-border);">
+        {{ objeto.descripcion_publica }}
+      </p>
+    </div>
+
+    <!-- Sección de Privacidad: Clave Secreta y Token (Ley 19.628) -->
+    {% if es_dueño or es_personal %}
+      <div style="background: #EFE4D6; border: 1px dashed var(--color-primary); padding: 1.4rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+          <h4 style="color: var(--color-primary-dark); font-size: 1rem; font-weight: 700; margin: 0;">
+            <i class="fa-solid fa-key"></i> Clave de Verificación Privada (Detalle Secreto)
+          </h4>
+          <span class="badge" style="background: #FEF08A; color: #854D0E;">Solo Dueño y Conserjería</span>
+        </div>
+        <p style="font-size: 0.92rem; color: #3B281C; background: #FFF; padding: 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--color-border-dark);">
+          {{ objeto.clave_verificacion_privada }}
+        </p>
+
+        <!-- Token de Retiro para el Propietario -->
+        {% if objeto.tipo_registro == 'perdido' and objeto.estado != 'entregado' %}
+          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border-dark); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <div>
+              <div style="font-weight: 700; font-size: 0.9rem; color: var(--color-primary-dark);">Tu Token de Retiro Presencial:</div>
+              <div style="font-size: 0.8rem; color: var(--color-text-muted);">Muéstrale este código de 6 dígitos al conserje al retirar tu objeto.</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 1.4rem; font-family: monospace; font-weight: 800; background: #2B1E16; color: #FFF; padding: 4px 14px; border-radius: var(--radius-sm); letter-spacing: 2px;">
+                {{ objeto.token_retiro }}
+              </span>
+              <button type="button" class="btn btn-secondary btn-sm btn-copiar-token" data-token="{{ objeto.token_retiro }}">
+                <i class="fa-solid fa-copy"></i> Copiar
+              </button>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if objeto.estado == 'entregado' %}
+          <div style="margin-top: 1rem; background: #D1FAE5; color: #065F46; padding: 0.8rem; border-radius: var(--radius-sm); font-size: 0.9rem;">
+            <i class="fa-solid fa-circle-check"></i> <strong>Entregado formalmente:</strong> 
+            El {{ objeto.fecha_entrega|date:"d/m/Y H:i" }} a {{ objeto.entregado_a.get_full_name|default:objeto.entregado_a.username }}.
+            {% if objeto.observaciones_entrega %}<br>Notas: {{ objeto.observaciones_entrega }}{% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% else %}
+      <div style="background: #F3F4F6; border: 1px solid #E5E7EB; padding: 1rem; border-radius: var(--radius-md); font-size: 0.85rem; color: #4B5563; margin-bottom: 1.5rem;">
+        <i class="fa-solid fa-shield-halved"></i> <strong>Privacidad Resguardada (Ley N° 19.628):</strong> 
+        La clave secreta de verificación y los datos de contacto del dueño están protegidos y solo se revelan ante el personal de conserjería durante el proceso de cotejo físico.
+      </div>
+    {% endif %}
+
+    <!-- Botones de Acción -->
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.8rem; border-top: 1px solid var(--color-border-dark); padding-top: 1.25rem;">
+      <a href="{% url 'buscar_objetos' %}" class="btn btn-secondary btn-sm">
+        &larr; Volver a Búsqueda
+      </a>
+
+      <div style="display: flex; gap: 0.6rem;">
+        {% if es_personal and objeto.estado != 'entregado' %}
+          <a href="{% url 'validar_entrega' objeto.id %}" class="btn btn-success btn-sm">
+            <i class="fa-solid fa-check-double"></i> Validar Entrega en Conserjería
+          </a>
+        {% endif %}
+
+        <a href="{% url 'reportar_incidencia_objeto' objeto.id %}" class="btn btn-secondary btn-sm" style="color: #9B1C1C;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Reportar Error
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Coincidencias Sugeridas Asociadas a esta Ficha -->
+  {% if coincidencias %}
+    <div class="card" style="padding: 1.5rem; background: #FFF; border-radius: var(--radius-lg);">
+      <h3 style="font-size: 1.15rem; color: var(--color-primary-dark); margin-bottom: 0.85rem;">
+        <i class="fa-solid fa-sparkles" style="color: #D97706;"></i> Coincidencias Sugeridas por el Motor Algorítmico
+      </h3>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for match in coincidencias %}
+          <div style="background: #F8F4EE; padding: 1rem; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border: 1px solid var(--color-border);">
+            <div>
+              <div style="font-weight: 700; color: #2B1E16;">
+                {{ match.objeto_perdido.subcategoria }} &harr; {{ match.objeto_encontrado.subcategoria }}
+              </div>
+              <div style="font-size: 0.82rem; color: var(--color-text-muted);">
+                Afinidad: <strong>{{ match.porcentaje_similitud }}%</strong> &bull; {{ match.criterios_match }}
+              </div>
+            </div>
+            <a href="{% url 'detalle_coincidencia' match.id %}" class="btn btn-primary btn-sm">
+              Ver Cotejo y Chat &rarr;
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

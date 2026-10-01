@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial Avanzado y Auditoría{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+  <div style="background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; box-shadow: var(--shadow-sm);">
+    <div>
+      <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--color-primary-dark); margin: 0;">
+        <i class="fa-solid fa-clock-rotate-left"></i> Historial Avanzado y Auditoría (RF-11)
+      </h1>
+      <p style="font-size: 0.88rem; color: var(--color-text-muted); margin-top: 0.2rem;">
+        Filtro granular para control administrativo y auditoría de casos en el edificio.
+      </p>
+    </div>
+    <a href="{% url 'metricas' %}" class="btn btn-secondary btn-sm">
+      &larr; Volver a Métricas
+    </a>
+  </div>
+
+  <!-- Formulario de Filtros de Historial -->
+  <div class="card" style="padding: 1.25rem; background: #F8F4EE; border: 1px solid var(--color-border-dark);">
+    <form method="GET" style="display: flex; gap: 0.85rem; flex-wrap: wrap; align-items: flex-end;">
+      
+      <div style="flex: 1; min-width: 150px;">
+        <label class="form-label" style="font-size: 0.8rem;">Tipo</label>
+        <select name="tipo" class="form-select">
+          <option value="">Todos los tipos</option>
+          <option value="perdido" {% if tipo_sel == 'perdido' %}selected{% endif %}>Perdidos</option>
+          <option value="encontrado" {% if tipo_sel == 'encontrado' %}selected{% endif %}>Encontrados</option>
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 160px;">
+        <label class="form-label" style="font-size: 0.8rem;">Estado</label>
+        <select name="estado" class="form-select">
+          <option value="">Todos los estados</option>
+          <option value="registrado" {% if estado_sel == 'registrado' %}selected{% endif %}>Registrado</option>
+          <option value="en_verificacion" {% if estado_sel == 'en_verificacion' %}selected{% endif %}>En Verificación</option>
+          <option value="entregado" {% if estado_sel == 'entregado' %}selected{% endif %}>Entregado</option>
+          <option value="dado_de_baja" {% if estado_sel == 'dado_de_baja' %}selected{% endif %}>Dado de Baja</option>
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 180px;">
+        <label class="form-label" style="font-size: 0.8rem;">Recinto / Sector</label>
+        <select name="recinto" class="form-select">
+          <option value="">Todos los recintos</option>
+          {% for r in recintos %}
+            <option value="{{ r.id }}" {% if recinto_sel|stringformat:"s" == r.id|stringformat:"s" %}selected{% endif %}>
+              {{ r.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <button type="submit" class="btn btn-primary" style="height: 42px;">
+          <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Tabla de Auditoría -->
+  <div class="card" style="padding: 0; overflow: hidden;">
+    <div class="table-responsive">
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>CÓDIGO</th>
+            <th>TIPO</th>
+            <th>OBJETO</th>
+            <th>SECTOR</th>
+            <th>REPORTADO POR</th>
+            <th>FECHA SUCESO</th>
+            <th>ESTADO</th>
+            <th>ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for obj in objetos %}
+            <tr>
+              <td><span style="font-family: monospace; font-weight: 700;">{{ obj.codigo_seguimiento }}</span></td>
+              <td>
+                <span class="badge {% if obj.tipo_registro == 'perdido' %}badge-perdido{% else %}badge-encontrado{% endif %}">
+                  {{ obj.get_tipo_registro_display }}
+                </span>
+              </td>
+              <td><strong>{{ obj.subcategoria }}</strong></td>
+              <td>{{ obj.ubicacion.nombre }}</td>
+              <td>{{ obj.usuario_reporta.get_full_name|default:obj.usuario_reporta.username }}</td>
+              <td>{{ obj.fecha_suceso|date:"d/m/Y" }}</td>
+              <td><span class="badge badge-{{ obj.estado }}">{{ obj.get_estado_display }}</span></td>
+              <td>
+                <a href="{% url 'detalle_objeto' obj.id %}" class="btn btn-secondary btn-sm">
+                  Ver Ficha
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 2rem; color: var(--color-text-muted);">
+                No se encontraron registros con los filtros seleccionados.
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
